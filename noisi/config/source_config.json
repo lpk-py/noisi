@@ -1,0 +1,18 @@
+{
+    "date_created": "",
+	"preprocess_do":true,
+    "preprocess_filter_kind": "bandpass",
+    "preprocess_filter_params": [
+        0.003,
+        1.0,
+        3,
+        true
+    ],
+	"preprocess_truncate_sec":null,
+    "max_lag": 0,
+    "mtype": "ln_energy_ratio",
+	"project_name":"",
+	"project_path":"",
+    "source_name": "",
+	"ktype":"td"
+}

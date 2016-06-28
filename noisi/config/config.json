@@ -1,0 +1,18 @@
+{	
+	"date_created":"",
+    "project_name": "",
+    "project_path": "x",
+    "grid_coord_centr": null,
+    "grid_dx": 0,
+    "grid_lat_max": 90,
+    "grid_lat_min": -90,
+    "grid_lon_max": 180,
+    "grid_lon_min": -180,
+    "grid_radius": 0,
+	"hdur_pointsource":10,
+    "station_channels": [
+        "MXZ"
+	],
+    "synt_data": "DIS",
+    "wavefield_path": "x"
+}

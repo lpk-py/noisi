@@ -1,0 +1,11 @@
+{
+    "date_created": "",
+    "mtype":"",
+	"g_speed":3000,
+	"window_params_wtype":"boxcar",
+	"window_params_hw":200,
+	"window_params_win_overlap":false,
+	"window_params_sep_noise":2.0,
+	"window_params_causal":true,
+	"plot_measurements":false
+}

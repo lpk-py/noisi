@@ -172,8 +172,7 @@ class WaveField(object):
                 newfile.file.flush()
         if not overwrite:
            print('Processed traces written to file %s, file closed, reopen to read / modify.' %newfile.file.filename)
-           newfile.write_stats()
-           newfile.write_sourcegrid()
+           
            newfile.file.close()
             
             

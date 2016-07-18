@@ -149,13 +149,13 @@ class WaveField(object):
         
         if not overwrite:
             # Create a new hdf5 file of the same shape
-            newfile = WaveField(shape=np.shape(self.data[:]),
-            outfile=self.file.filename+'_proc')
+            #newfile = WaveField(shape=np.shape(self.data[:]),
+            #outfile=self.file.filename+'_proc')
             # Copy the stats
-            newfile.stats = self.stats.copy()
+            #newfile.stats = self.stats.copy()
             # Copy the sourcegrid
-            newfile.sourcegrid=self.sourcegrid[:].copy()
-            
+            #newfile.sourcegrid=self.sourcegrid[:].copy()
+            newfile = self.copy_setup(outfile=self.file.filename+'_proc')
         else:
             # Call self.file newfile
             newfile = self.file

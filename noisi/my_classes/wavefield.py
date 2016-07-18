@@ -155,7 +155,7 @@ class WaveField(object):
             #newfile.stats = self.stats.copy()
             # Copy the sourcegrid
             #newfile.sourcegrid=self.sourcegrid[:].copy()
-            newfile = self.copy_setup(outfile=self.file.filename+'_proc')
+            newfile = self.copy_setup(newfile=self.file.filename+'_proc')
         else:
             # Call self.file newfile
             newfile = self.file

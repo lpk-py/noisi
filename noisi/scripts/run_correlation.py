@@ -362,8 +362,10 @@ def run_corr(source_configfile,step):
         
         try:
             wf1,wf2,src = paths_input(cp,source_config,step)
+            print(wf1,wf2,src)
             
             c, c_int = paths_output(cp,source_config,step)
+            print(c,c_int)
             print(c)
             print(c_int)
         except:

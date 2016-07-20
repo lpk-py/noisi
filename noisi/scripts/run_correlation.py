@@ -37,7 +37,7 @@ def paths_input(cp,source_conf,step):
     nsrc = os.path.join(source_conf['project_path'],
                      source_conf['source_name'],'step_'+str(step),
                      'starting_model.h5')
-   
+    
     return(wf1,wf2,nsrc)
     
     
@@ -365,9 +365,8 @@ def run_corr(source_configfile,step):
             print(wf1,wf2,src)
             
             c, c_int = paths_output(cp,source_config,step)
-            print(c,c_int)
-            print(c)
-            print(c_int)
+            
+            
         except:
             print('Could not determine correlation for: ')
             print(cp)

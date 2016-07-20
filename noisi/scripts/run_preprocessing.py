@@ -1,3 +1,4 @@
+from mpi4py import MPI
 from noisi import WaveField
 import os
 from glob import glob
@@ -15,7 +16,12 @@ def run_preprocessing(source_config):
     # determine filter parameters
     #if source_config['preprocess_filter_kind'] == 'bandpass':
         
-    
+    # very simple embarrassingly parallel loop
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm. Get_rank()
+
+    files = files[rank:len(files):size]
     
     for file in files:
         

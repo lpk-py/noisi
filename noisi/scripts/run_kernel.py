@@ -1,3 +1,4 @@
+from mpi4py import MPI
 import os
 import numpy as np
 import json
@@ -106,6 +107,14 @@ def run_kernel(source_configfile,step):
     if files == []:
         print("No adjoint sources found.")
         return()
+
+
+    # very simple embarrassingly parallel run
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    files = files[rank:len(files):size]
+
      
     #kernel_function = get_kernel_function(source_config['ktype'])
        

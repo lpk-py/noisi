@@ -1,5 +1,6 @@
 #!/Users/lermert/anaconda2/bin/python
 from __future__ import print_function
+from mpi4py import MPI
 import numpy as np
 import os
 import h5py
@@ -203,37 +204,37 @@ def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
         
         # initialize new hdf5 files for correlation and green's function correlation
         #with wf1.copy_setup(corr_file,nt=n_corr) as correl, NoiseSource(src) as nsrc:
-        correl = wf1.copy_setup(corr_file,nt=n_corr)
-        print(n_corr)
-        print(correl.stats)
-        nsrc = NoiseSource(src)
-        correlation = np.zeros(n_corr)
-        # Loop over source locations
-        with click.progressbar(range(wf1.stats['ntraces']),\
-        label='Correlating...' ) as ind:
-            for i in ind:
-               
-                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
-                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
-                
-                spec1 = np.fft.rfft(s1,n)
-                spec2 = np.fft.rfft(s2,n)
-                
-              
-                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                
-                # extract Green's function correlation here
-                # Save only as much as the adjoint source will be long.
-                # This has to be done only once.
-                corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
-                correl.data[i,:] = corr.astype(np.float32)
-                
-                
-                c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
-                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                
-                if i%1000 == 0:
-                    correl.file.flush()
+        with wf1.copy_setup(corr_file,nt=n_corr) as correl:
+        
+
+            nsrc = NoiseSource(src)
+            correlation = np.zeros(n_corr)
+            # Loop over source locations
+            with click.progressbar(range(wf1.stats['ntraces']),\
+            label='Correlating...' ) as ind:
+                for i in ind:
+                   
+                    s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+                    s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                    
+                    spec1 = np.fft.rfft(s1,n)
+                    spec2 = np.fft.rfft(s2,n)
+                    
+                  
+                    g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+                    
+                    # extract Green's function correlation here
+                    # Save only as much as the adjoint source will be long.
+                    # This has to be done only once.
+                    corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
+                    correl.data[i,:] = corr.astype(np.float32)
+                    
+                    
+                    c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+                    correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                    
+                    if i%1000 == 0:
+                        correl.file.flush()
                     
         trace = Trace()
         trace.stats.sampling_rate = wf1.stats['Fs']
@@ -357,6 +358,16 @@ def run_corr(source_configfile,step):
     # combine the preliminary correlation with the source spectrum
     #EXCEPT
     # - files not found?
+
+
+    # simple embarrassingly parallel run:
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+
+    p = p[rank:len(p):size]
 
     for cp in p:
         

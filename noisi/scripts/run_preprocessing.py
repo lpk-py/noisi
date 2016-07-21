@@ -24,8 +24,10 @@ def run_preprocessing(source_config):
     files = files[rank:len(files):size]
     
     for file in files:
-        
-        
+
+        newfile = file+'_proc'
+        if os.path.exists(newfile):
+            print "File {} was already processed, skipping.".format(os.path.basename(file))
         print "Preprocessing {}".format(os.path.basename(file))
         
 
@@ -33,14 +35,14 @@ def run_preprocessing(source_config):
         if source_config['preprocess_truncate_sec'] is not None:
             
             # truncating
-            newfile = file+'_proc'
+            
             with WaveField(file) as wf:
                 wf.truncate(newfile,float(source_config['preprocess_truncate_sec']))
             
         if source_config['preprocess_filter_kind'] == 'bandpass':
 
-            if os.path.exists(file+'_proc'):
-                with WaveField(file+'_proc') as wf:
+            if os.path.exists(newfile):
+                with WaveField(newfile) as wf:
                     wf.filter_all(
                         source_config['preprocess_filter_kind'],
                         overwrite=True,

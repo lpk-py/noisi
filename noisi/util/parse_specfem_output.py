@@ -81,8 +81,8 @@ except IndexError:
     
 print('Setting output file name according to input file name provided on command line:')
 station = os.path.splitext(os.path.basename(f_in))[0]
-f_out  = "%s.%s.%gHz.bin_%g" %(station,channel,fs_new,rank)
-dir_out = os.path.join(output_directory,'{}.{}'.format(station,channel))
+f_out  = "%s..%s.%gHz.bin_%g" %(station,channel,fs_new,rank)
+dir_out = os.path.join(output_directory,'{}..{}'.format(station,channel))
 f_out = os.path.join(dir_out,f_out)
 if rank == 0:
     os.system('mkdir -p '+dir_out)

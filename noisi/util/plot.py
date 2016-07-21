@@ -5,7 +5,7 @@ from matplotlib.mlab import griddata
 import matplotlib.tri as tri    
 import numpy as np
     
-def plot_grid(map_x,map_y,map_z,stations=[],v=1.2,globe=False,outfile=None):
+def plot_grid(map_x,map_y,map_z,stations=[],v=1.2,globe=False,outfile=None,title=None):
     
     m = Basemap(rsphere=6378137,resolution='c',projection='cyl',lat_0=0.,           lon_0=0.,llcrnrlat=np.min(map_y),urcrnrlat=np.max(map_y),
     llcrnrlon=np.min(map_x),urcrnrlon=np.max(map_x))
@@ -18,6 +18,7 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=1.2,globe=False,outfile=None):
     plt.figure()
     plt.subplot(111)
     plt.gca().set_aspect('equal')
+    plt.title(title)
    
     plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),                         shading='flat', vmin=-v,vmax=v, cmap=plt.cm.bwr)
     m.colorbar(location='bottom')

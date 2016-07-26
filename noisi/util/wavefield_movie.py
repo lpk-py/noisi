@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
-from my_name import WaveField
+from noisi import WaveField
 import sys
 from mpl_toolkits.basemap import Basemap
 from matplotlib.mlab import griddata
@@ -32,6 +32,7 @@ wf = WaveField(sys.argv[1])
 t_min = float(sys.argv[2])
 t_max = float(sys.argv[3])
 t_step = float(sys.argv[4])
+filename = sys.argv[5]
 #################################
 
 FFMpegWriter = manimation.writers['ffmpeg']
@@ -58,10 +59,10 @@ for sta in stations:
     m.plot(sta[0],sta[1],'rv',markersize=10,latlon=True)
 
 
-with writer.saving(fig, "writer_test.mp4", 100):
+with writer.saving(fig, filename, 100):
     for t in np.arange(t_max,t_min,-t_step):
         print t
-        map_z = wf.get_snapshot(t)
+        map_z = wf.get_snapshot(t,resol = 4)
         if globe:
             map_z = np.append(map_z,map_z[0])
         plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),                         shading='flat', vmin=-v,vmax=v, cmap=plt.cm.bwr)

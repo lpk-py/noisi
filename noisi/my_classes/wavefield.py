@@ -201,14 +201,14 @@ class WaveField(object):
         return trace
             
     
-    def get_snapshot(self,t):
+    def get_snapshot(self,t,resolution=1):
         
         #ToDo: Ask someone who knows h5py well how to do this in a nice way!
         t_sample = int(round(self.stats['Fs'] * t))
         if t_sample >= np.shape(self.data)[1]:
             warn('Requested sample is out of bounds, resetting to last sample.')
             t_sample = np.shape(self.data)[1]-1
-        snapshot = self.data[:,t_sample]
+        snapshot = self.data[0:len(self.data[:,0]):resolution,t_sample]
         print('Got snapshot')
         
         return snapshot

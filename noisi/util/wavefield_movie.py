@@ -18,7 +18,6 @@ import matplotlib.tri as tri
 
 #################################
 v = 1.
-globe = True
 stations = [(0.,0.),(41.,0.)]
 lonmin=-120.
 lonmax=120.
@@ -26,6 +25,7 @@ latmin=-60.
 latmax=60.
 latc=0.0
 lonc=0.0
+resolution = 4
 fps = 0.5
 
 wf = WaveField(sys.argv[1])
@@ -44,10 +44,9 @@ fig = plt.figure()
 plt.subplot(111)
 
 map_x = wf.sourcegrid[0]
+map_x = map_x[0:len(map_x):resolution]
 map_y = wf.sourcegrid[1]
-if globe: #Wraparound point for longitudes on global grid
-    map_x = np.append(map_x,map_x[0])
-    map_y = np.append(map_y,map_y[0])
+map_y = map_y[0:len(map_y):resolution]
 triangles = tri.Triangulation(map_x,map_y)
 m = Basemap(rsphere=6378137,resolution='c',projection='cyl',lat_0=latc,           lon_0=lonc,llcrnrlat=latmin,urcrnrlat=latmax,
     llcrnrlon=lonmin,urcrnrlon=lonmax)
@@ -62,7 +61,7 @@ for sta in stations:
 with writer.saving(fig, filename, 100):
     for t in np.arange(t_max,t_min,-t_step):
         print t
-        map_z = wf.get_snapshot(t,resol = 4)
+        map_z = wf.get_snapshot(t,resolution=resolution)
         if globe:
             map_z = np.append(map_z,map_z[0])
         plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),                         shading='flat', vmin=-v,vmax=v, cmap=plt.cm.bwr)

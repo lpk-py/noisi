@@ -30,7 +30,7 @@ def setup_project(project_name):
         exit()   
     os.makedirs(os.path.join(project_name,'observed_correlations'))
     os.mkdir(os.path.join(project_name,'green_c'))
-    os.mkdir(os.path.join(project_name,'green_c_fd'))
+    #os.mkdir(os.path.join(project_name,'green_c_fd'))
     
     from . import _ROOT
     with io.open(os.path.join(_ROOT,'config','config.json'),'rb+') as fh:
@@ -109,6 +109,12 @@ def preprocessing(source_model):
     source_model = os.path.join(source_model,'source_config.json')
     source_config = json.load(open(source_model))
     if source_config['preprocess_do']:
+        
+        dir = os.path.join(source_config['project_path'],'wavefield_processed')
+        
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+            
         run_preprocessing(source_config)
 
 @run.command(help='Calculate correlations for selected source model.')

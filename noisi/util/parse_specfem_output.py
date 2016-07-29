@@ -42,6 +42,7 @@ output_directory = '/scratch/daint/lermert/output_decimated/'
 channel = 'MXZ' # 'all' or specify channels as in specfem output, e.g. 'MXZ'
 freq = 0.05 # Lowpass corner
 fs_new = 0.4 # Interpolate to new sampling rate in Hz 
+
 #------------------------------------------------------
 #------------------------------------------------------
 
@@ -125,6 +126,8 @@ if dt_test != dt and rank == 0:
     
 # Determine the sampling rate
 fs_old = 1./dt
+# Get taper
+
 # Get filter coeff
 z, p, k = cheby2_lowpass(fs_old,freq)
 sos = zpk2sos(z, p, k)
@@ -181,6 +184,9 @@ for ns in range(rank,nstations,size):
         # Filter and downsample
         # Since the same filter will be applied to all synthetics consistently, non-zero-phase should be okay
         # ToDo: Think about whether zerophase would be better
+        
+        # taper first
+        tr.data *= taper
         tr.data = sosfilt(sos,tr.data)
         tr.stats.sampling_rate = fs_old
         tr.interpolate(fs_new)

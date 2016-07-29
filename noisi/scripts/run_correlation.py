@@ -28,10 +28,15 @@ def paths_input(cp,source_conf,step):
     # Wavefield files
     conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
+    if source_conf['preprocess_do']:
+        dir = os.path.join(source_conf['project_path'],'wavefield_processed')
+    else:
+        conf['wavefield_path']
+        
     extens = '.h5_proc' if source_conf['preprocess_do'] else '.h5'
     
-    wf1 = glob(os.path.join(conf['wavefield_path'],sta1+extens))[0]
-    wf2 = glob(os.path.join(conf['wavefield_path'],sta2+extens))[0]
+    wf1 = glob(os.path.join(dir,sta1+extens))[0]
+    wf2 = glob(os.path.join(dir,sta2+extens))[0]
     
     
     # Starting model noise source

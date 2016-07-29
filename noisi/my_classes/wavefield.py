@@ -208,23 +208,23 @@ class WaveField(object):
         if t_sample >= np.shape(self.data)[1]:
             warn('Requested sample is out of bounds, resetting to last sample.')
             t_sample = np.shape(self.data)[1]-1
-        snapshot = self.data[0:len(self.data[:,0]):resolution,t_sample]
+        snapshot = self.data[0::resolution,t_sample] #0:len(self.data[:,0]):resolution
         print('Got snapshot')
         
         return snapshot
     
     #ToDo put somewhere else    
-    def plot_snapshot(self,t,**kwargs):
+    def plot_snapshot(self,t,resolution=1,**kwargs):
         
         if self.sourcegrid is None:
             msg = 'Must have a source grid to plot a snapshot.'
             raise ValueError(msg)
         
         # ToDo: Replace all the hardcoded geographical boundary values!
-        map_x = self.sourcegrid[0]
-        map_y = self.sourcegrid[1]
+        map_x = self.sourcegrid[0][0::resolution]
+        map_y = self.sourcegrid[1][0::resolution]
                                  
-        plot.plot_grid(map_x,map_y,self.get_snapshot(t),**kwargs)
+        plot.plot_grid(map_x,map_y,self.get_snapshot(t,resolution=resolution),**kwargs)
     
     def update_stats(self):
         

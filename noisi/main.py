@@ -117,7 +117,8 @@ def preprocessing(source_model):
         
         try:
             os.mkdir(dir)
-            
+        except:
+            pass    
         run_preprocessing(source_config)
 
 @run.command(help='Calculate correlations for selected source model.')

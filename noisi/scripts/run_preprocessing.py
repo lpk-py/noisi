@@ -21,7 +21,7 @@ def run_preprocessing(source_config):
     size = comm.Get_size()
     rank = comm. Get_rank()
 
-    files = files[rank:len(files):size]
+    files = files[rank::size]
     
     for file in files:
 

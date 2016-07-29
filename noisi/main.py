@@ -98,10 +98,12 @@ def setup_source(source_model):
     
     from . import _ROOT
     os.system('cp {} {}'.format(os.path.join(_ROOT,'setup_noisesource.ipynb'),
-    source_model))    
+    source_model))  
+    os.system('cp {} {}'.format(os.path.join(_ROOT,'setup_noisesource.py'),
+    source_model))  
     
     click.secho("Copied default source_config.json and measr_config.json to source model directory, please edit. \
-Please run setup_noisesource.ipynb using jupyter notebook to create starting model.")
+Please run setup_noisesource.ipynb or setup_noisesource.py after editing to create starting model.")
     
 @run.command(help='Filter & truncate synthetics before correlation.')
 @click.argument('source_model')
@@ -110,9 +112,10 @@ def preprocessing(source_model):
     source_config = json.load(open(source_model))
     if source_config['preprocess_do']:
         
+        
         dir = os.path.join(source_config['project_path'],'wavefield_processed')
         
-        if not os.path.exists(dir):
+        try:
             os.mkdir(dir)
             
         run_preprocessing(source_config)

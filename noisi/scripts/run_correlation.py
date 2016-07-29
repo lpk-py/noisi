@@ -31,7 +31,7 @@ def paths_input(cp,source_conf,step):
     if source_conf['preprocess_do']:
         dir = os.path.join(source_conf['project_path'],'wavefield_processed')
     else:
-        conf['wavefield_path']
+        dir = conf['wavefield_path']
         
     extens = '.h5_proc' if source_conf['preprocess_do'] else '.h5'
     

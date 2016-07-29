@@ -152,14 +152,14 @@ plot.plot_grid(grd[0],grd[1],distr,outfile = os.path.join(sourcepath,'geog_distr
 plt.figure()
 plt.semilogx(freq,np.dot(weights2[0,:],basis2))
 plt.xlabel('Frequency (Hz)')
-plt.ylabel('Source amplitude squared (m^2/s^2)')
+plt.ylabel('Source power (scaled)')
 plt.savefig(os.path.join(sourcepath,'freq_distr_startingmodel.png'))
 
 
 # Save to an hdf5 file
 print basis2
 
-with h5py.File(os.path.join(sourcepath,'sourcemodel.h5'),'w') as fh:
+with h5py.File(os.path.join(sourcepath,'step_0','starting_model.h5'),'w') as fh:
     fh.create_dataset('coordinates',data=grd.astype(np.float32))
     fh.create_dataset('frequencies',data=freq.astype(np.float32))
     fh.create_dataset('distr_basis',data=basis1.astype(np.float32))

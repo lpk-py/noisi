@@ -18,6 +18,7 @@
 from mpi4py import MPI
 from scipy.signal import iirfilter, lfilter
 from obspy import Trace
+from obspy.signal.invsim import cosine_taper
 import numpy as np
 import os
 import sys
@@ -126,7 +127,6 @@ if dt_test != dt and rank == 0:
     
 # Determine the sampling rate
 fs_old = 1./dt
-# Get taper
 
 # Get filter coeff
 z, p, k = cheby2_lowpass(fs_old,freq)
@@ -186,7 +186,8 @@ for ns in range(rank,nstations,size):
         # ToDo: Think about whether zerophase would be better
         
         # taper first
-        tr.data *= taper
+        #ToDo: Discuss with Andreas whether this tapering makes sense!
+        tr.taper(type='cosine',max_percentage=0.001)
         tr.data = sosfilt(sos,tr.data)
         tr.stats.sampling_rate = fs_old
         tr.interpolate(fs_new)

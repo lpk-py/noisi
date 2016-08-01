@@ -90,9 +90,12 @@ def get_window(stats,g_speed,params):
         win_signal = window(params['wtype'],n,ind_lo,ind_hi)
         # Fill noise window
         win_noise = window(params['wtype'],n,ind_lo_n,ind_hi_n)
+    
  
- 
-    return win_signal, win_noise, scs
+        return win_signal, win_noise, scs
+
+    else:
+        return [],[],scs
 
 
 

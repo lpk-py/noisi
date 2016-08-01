@@ -79,13 +79,17 @@ def adjointsrcs(source_config,mtype,step,**options):
            
             # Get the adjoint source
             func = af.get_adj_func(mtype)
-            adj_src = Trace(data=func(tr_o,tr_s,**options))
-            adj_src.stats = tr_o.stats.copy()
+            try:
+                adj_src = Trace(data=func(tr_o,tr_s,**options))
+                adj_src.stats = tr_o.stats.copy()
+                # Save the adjoint source
+                file_adj_src = os.path.join(adj_dir,os.path.basename(f))
+                adj_src.write(file_adj_src,format='SAC')
+            except:
+                pass
             #ToDo think about whether stats are ok
             
-            # Save the adjoint source
-            file_adj_src = os.path.join(adj_dir,os.path.basename(f))
-            adj_src.write(file_adj_src,format='SAC') 
+             
             
             # step index
             i+=1

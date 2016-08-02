@@ -97,8 +97,7 @@ def run_kernel(source_configfile,step):
     source_config=json.load(open(source_configfile))
     
     step_n = 'step_{}'.format(int(step))
-    step_dir = os.path.join(source_config['project_path'],
-    source_config['source_name'],step_n)
+    step_dir = os.path.join(source_config['source_path'],step_n)
     ktype = source_config['ktype']
     # All the adjoint sources available:
     files = [f for f in os.listdir(os.path.join(step_dir,'adjt'))]
@@ -125,10 +124,10 @@ def run_kernel(source_configfile,step):
         sta2 = corr.split('--')[1]
         
         if ktype == 'fd':
-            kfile = os.path.join(source_config['project_path'],'green_c_fd',
-            '{}--{}.h5'.format(sta1,sta2))
-        else:
-            kfile = os.path.join(source_config['project_path'],'green_c',
+            kfile = os.path.join(source_config['source_path'],'green_c_fd',
+            '{}--{}.h5'.format(sta1,sta2))      
+        else:                                   
+            kfile = os.path.join(source_config['source_path'],'green_c',
             '{}--{}.h5'.format(sta1,sta2))
         print(kfile)
         

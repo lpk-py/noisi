@@ -19,8 +19,8 @@ from scipy.signal import hann
 # USER INPUT
 ##################################################################
 # path to project
-projectpath = '/home/lermert/Schreibtisch/work_in_japan/example/test_1'
-sourcepath = '/home/lermert/Schreibtisch/work_in_japan/example/test_1/newsource'
+projectpath = '../'
+sourcepath = '.'
 
 
 # geography - Add anything else than a homogeneous distribution by setting to "True" the following:
@@ -29,7 +29,7 @@ gaussian_blobs = False
 params_gaussian_blobs = [{'center':(0.,0.),'sigma_radius_m':500000.,'rel_weight':2.}]
 
 #spectra
-params_gaussian_spectra = [{'central_freq':0.005,'sigma_freq':0.01,'weight':1.}]
+params_gaussian_spectra = [{'central_freq':0.005,'sigma_freq':0.001,'weight':1.}]
 
 
                           #{'central_freq':0.075,'sigma_freq':0.1,'weight':10.}]
@@ -46,7 +46,7 @@ print 'Loaded config files.'
 
 if source_config['preprocess_do']:
     ext = '*.h5_proc'
-    wavefield_path = os.path.join(projectpath,'proc_wavefield')
+    wavefield_path = os.path.join(sourcepath,'wavefield_processed')
 else:
     ext = '*.h5'
     wavefield_path = config['wavefield_path']

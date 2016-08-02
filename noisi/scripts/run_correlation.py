@@ -60,11 +60,11 @@ def paths_output(cp,source_conf,step):
     ktype = source_conf['ktype']
     print(ktype)
     if ktype == 'fd':
-        corr_name = os.path.join(source_conf['project_path'],
+        corr_name = os.path.join(source_conf['source_path'],
         'green_c_fd',
         corr_name)
     elif ktype == 'td':
-        corr_name = os.path.join(source_conf['project_path'],
+        corr_name = os.path.join(source_conf['source_path'],
         'green_c',
         corr_name)
     else:

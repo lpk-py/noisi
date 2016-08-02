@@ -29,7 +29,7 @@ def setup_project(project_name):
         click.echo('Project exists already, must give it a new name.')
         exit()   
     os.makedirs(os.path.join(project_name,'observed_correlations'))
-    os.mkdir(os.path.join(project_name,'green_c'))
+    #os.mkdir(os.path.join(project_name,'green_c'))
     #os.mkdir(os.path.join(project_name,'green_c_fd'))
     
     from . import _ROOT
@@ -70,6 +70,7 @@ def setup_source(source_model):
         exit()
     
     os.makedirs(os.path.join(source_model,'step_0'))
+    os.mkdir(os.path.join(source_model,'green_c'))
     for d in ['adjt','grad','corr']:
         os.mkdir(os.path.join(source_model,'step_0',d))
 

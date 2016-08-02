@@ -43,12 +43,12 @@ def measurement(source_config,mtype,step,**options):
     step_n = 'step_{}'.format(int(step))
     
     
-    step_dir = os.path.join(source_config['project_path'],
-    source_config['source_name'],step_n)
+    step_dir = os.path.join(source_config['source_path'],
+    step_n)
     
-    files = [f for f in os.listdir(os.path.join(source_config['project_path'],
+    files = [f for f in os.listdir(os.path.join(source_config['source_path'],
     'observed_correlations')) ]
-    files = [os.path.join(source_config['project_path'],
+    files = [os.path.join(source_config['source_path'],
     'observed_correlations',f) for f in files]
     
     synth_dir = os.path.join(step_dir,'corr')

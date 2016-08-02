@@ -69,7 +69,9 @@ def setup_source(source_model):
         (detailing e.g. source grid). Run setup_project first.')
         exit()
     
+    
     os.makedirs(os.path.join(source_model,'step_0'))
+    os.mkdir(os.path.join(source_model,'observed_correlations'))
     os.mkdir(os.path.join(source_model,'green_c'))
     for d in ['adjt','grad','corr']:
         os.mkdir(os.path.join(source_model,'step_0',d))

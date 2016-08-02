@@ -112,13 +112,13 @@ def preprocessing(source_model):
     source_config = json.load(open(source_model))
     if source_config['preprocess_do']:
         
-        
-        dir = os.path.join(source_config['project_path'],'wavefield_processed')
+        dir = os.path.join(source_config['source_path'],'wavefield_processed')
         
         try:
             os.mkdir(dir)
         except:
             pass    
+            
         run_preprocessing(source_config)
 
 @run.command(help='Calculate correlations for selected source model.')

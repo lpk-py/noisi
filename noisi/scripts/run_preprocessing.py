@@ -25,7 +25,7 @@ def run_preprocessing(source_config):
     
     for file in files:
 
-        newfile = os.path.join(source_config['project_path'],'wavefield_processed',
+        newfile = os.path.join(source_config['source_path'],'wavefield_processed',
         os.path.basename(file)+'_proc')
         if os.path.exists(newfile):
             print "File {} was already processed, skipping.".format(os.path.basename(file))

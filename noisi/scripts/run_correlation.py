@@ -29,7 +29,7 @@ def paths_input(cp,source_conf,step):
     conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
     if source_conf['preprocess_do']:
-        dir = os.path.join(source_conf['project_path'],'wavefield_processed')
+        dir = os.path.join(source_conf['source_path'],'wavefield_processed')
     else:
         dir = conf['wavefield_path']
         

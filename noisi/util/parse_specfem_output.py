@@ -178,8 +178,7 @@ for ns in range(rank,nstations,size):
         values = np.fromfile(f_in,dtype=dtype_output,count=ntimesteps)
         
         tr = Trace(data=values)
-        # Remove the extra time that specfem added
-        tr.trim(starttime = tr.stats.starttime+offset_seconds)
+        
         
         # Filter and downsample
         # Since the same filter will be applied to all synthetics consistently, non-zero-phase should be okay
@@ -198,9 +197,14 @@ for ns in range(rank,nstations,size):
             if output_quantity == 'ACC':
                 tr.differentiate()
         
+        
+        # Remove the extra time that specfem added
+        tr.trim(starttime = tr.stats.starttime+offset_seconds)
+        
+        # Set data type
         tr.data = tr.data.astype(dtype_output)
         
-        
+
         infnr[0] += tr.stats.npts
         infnr[1] += tr.stats.sampling_rate
             

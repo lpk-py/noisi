@@ -53,8 +53,10 @@ def paths_output(cp,source_conf,step):
     
     inf1 = cp[0].split()
     inf2 = cp[1].split()
-    sta1 = "{}.{}..{}".format(*inf1)
-    sta2 = "{}.{}..{}".format(*inf2)
+
+    channel = source_conf['channel']
+    sta1 = "{}.{}..{}".format(*(inf1[0:2]+[channel]))
+    sta2 = "{}.{}..{}".format(*(inf2[0:2]+[channel]))
     
     # Correlation file
     corr_name = "{}--{}.h5".format(sta1,sta2)

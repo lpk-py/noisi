@@ -10,6 +10,7 @@
     ],
 	"preprocess_truncate_sec":null,
     "max_lag": 0,
+    "channel": "MXZ",
     "mtype": "ln_energy_ratio",
 	"project_name":"",
 	"project_path":"",

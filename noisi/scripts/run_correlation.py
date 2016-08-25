@@ -17,16 +17,18 @@ from scipy.signal import sosfilt
 from noisi.util.windows import my_centered, zero_buddy
 from noisi.util.corr_pairs import define_correlationpairs
 
-
-def paths_input(cp,channel,source_conf,step):
+#ToDo: put in the possibility to run on mixed channel pairs
+def paths_input(cp,source_conf,step):
     
     inf1 = cp[0].split()
     inf2 = cp[1].split()
-    sta1 = "{}.{}..{}".format(*(inf1+[channel]))
-    sta2 = "{}.{}..{}".format(*(inf2+[channel]))
+    
     
     # Wavefield files
     conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
+    channel = source_conf['channel']
+    sta1 = "{}.{}..{}".format(*(inf1+[channel]))
+    sta2 = "{}.{}..{}".format(*(inf2+[channel]))
     
     if source_conf['preprocess_do']:
         dir = os.path.join(source_conf['source_path'],'wavefield_processed')

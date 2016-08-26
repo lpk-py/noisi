@@ -376,8 +376,12 @@ def run_corr(source_configfile,step):
     rank = comm.Get_rank()
 
 
-    p = p[rank:len(p):size]
-
+    # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 
+    # this will prevent that many processes try to access the same hdf5 file all at once.
+    num_pairs = int( round(float(len(p))/float(size)) )
+    p = p[ rank*num_pairs : rank*num_pairs + num_pairs] 
+    
+    print(p)
     for cp in p:
         
         try:

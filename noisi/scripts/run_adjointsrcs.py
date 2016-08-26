@@ -28,7 +28,39 @@ def get_station_info(stats):
     
     return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az])
 
-     
+def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synth_channel_basename='MX'):
+
+    inf = obs_filename.split('--')
+
+    if len(inf) == 1:
+        # old station name format
+        inf = obs_filename.split('.')
+        net1 = inf[0]
+        sta1 = inf[1]
+        cha1 = inf[3]
+        net2 = inf[4]
+        sta2 = inf[5]
+        cha2 = inf[7]
+    elif len(inf) == 2:
+        # new station name format
+        inf1 = inf[0].split('.')
+        inf2 = inf[1].split('.')
+        net1 = inf1[0]
+        sta1 = inf1[1]
+        net2 = inf2[0]
+        sta2 = inf2[1]
+        cha1 = inf1[3]
+        cha2 = inf2[3]
+
+
+    cha1 = synth_channel_basename + cha1[-1]
+    cha2 = synth_channel_basename + cha2[-1]
+
+    synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
+        cha1,net2,sta2,synth_location,cha2,fileformat)
+    print(synth_filename)
+    return(synth_filename)
+
 
 def adjointsrcs(source_config,mtype,step,**options):
     
@@ -68,7 +100,8 @@ def adjointsrcs(source_config,mtype,step,**options):
                 i+=1
                 continue
             try:
-                tr_s = read(os.path.join(synth_dir,os.path.basename(f)))[0]
+                synth_filename = get_synthetics_filename(os.path.basename(f))
+                tr_s = read(os.path.join(synth_dir,synth_filename))[0]
             except:
                 print('\nCould not read synthetics: '+os.path.basename(f))
                 i+=1
@@ -83,7 +116,7 @@ def adjointsrcs(source_config,mtype,step,**options):
                 adj_src = Trace(data=func(tr_o,tr_s,**options))
                 adj_src.stats = tr_o.stats.copy()
                 # Save the adjoint source
-                file_adj_src = os.path.join(adj_dir,os.path.basename(f))
+                file_adj_src = os.path.join(adj_dir,synth_filename)
                 adj_src.write(file_adj_src,format='SAC')
             except:
                 pass

@@ -34,7 +34,7 @@ def get_essential_sacmeta(sac):
     #==============================================================================
     #- Essential metadata  
     #==============================================================================
-    newsacdict['kt8']     =   sac['kt8']   
+     
     newsacdict['user0']   =   sac['user0'] 
     newsacdict['b']       =   sac['b']     
     newsacdict['e']       =   sac['e']     

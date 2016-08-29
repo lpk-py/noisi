@@ -388,21 +388,21 @@ def run_corr(source_configfile,step):
     # this will prevent that many processes try to access the same hdf5 file all at once.
     num_pairs = int( round(float(len(p))/float(size)) )
     p = p[ rank*num_pairs : rank*num_pairs + num_pairs] 
-    
+    p
     print(p)
     for cp in p:
         
-        try:
-            wf1,wf2,src = paths_input(cp,source_config,step)
-            print(wf1,wf2,src)
+        #try:
+        wf1,wf2,src = paths_input(cp,source_config,step)
+        print(wf1,wf2,src)
+        
+        c, c_int = paths_output(cp,source_config,step)
             
-            c, c_int = paths_output(cp,source_config,step)
             
-            
-        except:
-            print('Could not determine correlation for: ')
-            print(cp)
-            continue
+        #except:
+        #    print('Could not determine correlation for: ')
+        #    print(cp)
+         #   continue
             
         if not os.path.exists(c):
             if int(step) == 0:

@@ -1,13 +1,26 @@
 import numpy as np
 
 def my_centered(arr, newsize):
+
+    # pad with zeros, if newsize > len(arr)
+    newarr = np.zeros(newsize)
+
     # get the center portion of a 1-dimensional array correctly
     n = len(arr)
     i0 = (n - newsize) // 2
     if n%2 == 0: # This is somehow a matter of definition, cause the array has no 'center' sample
         i0 += 1
-    i1 = i0 + newsize
-    return arr[i0:i1]
+    
+    if i0 < 0:
+
+        i0 = (newsize - n) // 2
+        newarr[i0:i0+n] += arr
+
+    else:
+        newarr[:] += arr[i0:i0+newsize]
+
+
+    return newarr
 
 def zero_buddy(n,n_new,causal_function=True):
     """

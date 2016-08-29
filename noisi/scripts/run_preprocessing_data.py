@@ -61,3 +61,5 @@ def run_preprocess_data(source,bandpass=None,decimator=None,Fs_new=None,overwrit
 			tr.data = my_centered(tr.data,tr.stats.npts-1)
 
 		tr.write(os.path.join(outdir,os.path.basename(f)),format=fmt)
+	print('Preprocessing complete:')
+	print('Please rename folders, measurement will be taken on observed_correlations folder.')

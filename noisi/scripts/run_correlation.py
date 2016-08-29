@@ -51,8 +51,12 @@ def paths_input(cp,source_conf,step):
     
 def paths_output(cp,source_conf,step):
     
-    inf1 = cp[0].split()
-    inf2 = cp[1].split()
+    if cp[0] < cp[1]:
+        inf1 = cp[0].split()
+        inf2 = cp[1].split()
+    else:
+        inf2 = cp[0].split()
+        inf1 = cp[1].split()
 
     channel = source_conf['channel']
     sta1 = "{}.{}..{}".format(*(inf1[0:2]+[channel]))

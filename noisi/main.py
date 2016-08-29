@@ -127,24 +127,22 @@ def preprocess_synthetics(source_model):
 
 @run.command(help='Preprocess observed correlations')
 @click.argument('source_model')
-@click.argument('step')
 @click.option('--bandpass',help='Bandpass filter, format: freq1 freq2 corners.',default=None)
 @click.option('--decimator',help='Decimation factor. Default obspy antialias filter will be run before decimating.',default=None)
-@click.option('--Fs_new',help='New sampling rate. Ensure that filtering is performed before!',default=None)
-def preprocess_data(source_model,step,bandpass,decimator,Fs_new):
+@click.option('--fs_new',help='New sampling rate. Ensure that filtering is performed before!',default=None)
+def preprocess_data(source_model,bandpass,decimator,fs_new):
 
     if bandpass is not None:
         bandpass = [float(bp) for bp in bandpass.split()]
 
-    if Fs_new is not None:
-        Fs_new = float(Fs_new)
+    if fs_new is not None:
+        fs_new = float(fs_new)
 
     if decimator is not None:
         decimator = int(decimator)
 
-    step = int(step)
     
-    run_preprocess_data(source_model,step,bandpass,decimator,Fs_new)
+    run_preprocess_data(source_model,bandpass=bandpass,decimator=decimator,Fs_new=fs_new)
 
 
 @run.command(help='Calculate correlations for selected source model.')

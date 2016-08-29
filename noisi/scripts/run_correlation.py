@@ -394,17 +394,17 @@ def run_corr(source_configfile,step):
     
     for cp in p_p:
         
-        #try:
-        wf1,wf2,src = paths_input(cp,source_config,step)
-        print(wf1,wf2,src)
+        try:
+            wf1,wf2,src = paths_input(cp,source_config,step)
+            print(wf1,wf2,src)
         
-        c, c_int = paths_output(cp,source_config,step)
+            c, c_int = paths_output(cp,source_config,step)
             
             
-        #except:
-        #    print('Could not determine correlation for: ')
-        #    print(cp)
-         #   continue
+        except:
+            print('Could not determine correlation for: ')
+            print(cp)
+            continue
             
         if not os.path.exists(c):
             if int(step) == 0:

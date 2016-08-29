@@ -28,6 +28,30 @@ def get_station_info(stats):
     
     return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az])
 
+def get_essential_sacmeta(sac):
+
+    newsacdict={}
+    #==============================================================================
+    #- Essential metadata  
+    #==============================================================================
+    newsacdict['kt8']     =   sac['kt8']   
+    newsacdict['user0']   =   sac['user0'] 
+    newsacdict['b']       =   sac['b']     
+    newsacdict['e']       =   sac['e']     
+    newsacdict['stla']    =   sac['stla']  
+    newsacdict['stlo']    =   sac['stlo']  
+    newsacdict['evla']    =   sac['evla']  
+    newsacdict['evlo']    =   sac['evlo']  
+    newsacdict['dist']    =   sac['dist']  
+    newsacdict['az']      =   sac['az']    
+    newsacdict['baz']     =   sac['baz']   
+    newsacdict['kuser0']  =   sac['kuser0']
+    newsacdict['kuser1']  =   sac['kuser1']
+    newsacdict['kuser2']  =   sac['kuser2']
+    newsacdict['kevnm']   =   sac['kevnm']
+
+    return newsacdict
+
 def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synth_channel_basename='MX'):
 
     inf = obs_filename.split('--')
@@ -106,7 +130,16 @@ def adjointsrcs(source_config,mtype,step,**options):
                 print('\nCould not read synthetics: '+os.path.basename(f))
                 i+=1
                 continue
-            tr_s.stats.sac = tr_o.stats.sac.copy() #ToDo handle stats in synth.
+
+            # Add essential metadata
+            tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
+
+            # Check sampling rates. 
+            if round(tr_s.stats.sampling_rate,6) != round(tr_o.stats.sampling_rate,6):
+                msg = 'Sampling rates of data and synthetics must match.'
+                raise ValueError(msg)
+
+            # Waveforms must have same nr of samples.
             tr_s.data = my_centered(tr_s.data,tr_o.stats.npts)    
            
            
@@ -114,20 +147,19 @@ def adjointsrcs(source_config,mtype,step,**options):
             func = af.get_adj_func(mtype)
             try:
                 adj_src = Trace(data=func(tr_o,tr_s,**options))
-                adj_src.stats.sac = tr_o.stats.sac.copy()
+                adj_src.stats.sac = tr_s.stats.sac.copy()
                 # Save the adjoint source
                 file_adj_src = os.path.join(adj_dir,synth_filename)
                 adj_src.write(file_adj_src,format='SAC')
             except:
                 pass
-            #ToDo think about whether stats are ok
-            
-             
-            
+           
+              
             # step index
             i+=1
     
-    
+
+
 
 
 def run_adjointsrcs(source_configfile,measr_configfile,step):

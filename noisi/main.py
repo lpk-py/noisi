@@ -13,6 +13,7 @@ from noisi.scripts.run_measurement import run_measurement
 from noisi.scripts.run_adjointsrcs import run_adjointsrcs
 from noisi.scripts.run_kernel import run_kernel
 from noisi.scripts.run_preprocessing import run_preprocessing
+from noisi.scripts.run_preprocessing_data import run_preprocess_data
 
 @click.group()
 def run():
@@ -110,7 +111,7 @@ Please run setup_noisesource.ipynb or setup_noisesource.py after editing to crea
     
 @run.command(help='Filter & truncate synthetics before correlation.')
 @click.argument('source_model')
-def preprocessing(source_model):
+def preprocess_synthetics(source_model):
     source_model = os.path.join(source_model,'source_config.json')
     source_config = json.load(open(source_model))
     if source_config['preprocess_do']:
@@ -123,6 +124,28 @@ def preprocessing(source_model):
             pass    
             
         run_preprocessing(source_config)
+
+@run.command(help='Preprocess observed correlations')
+@click.argument('source_model')
+@click.argument('step')
+@click.option('--bandpass',help='Bandpass filter, format: freq1 freq2 corners.',default=None)
+@click.option('--decimator',help='Decimation factor. Default obspy antialias filter will be run before decimating.',default=None)
+@click.option('--Fs_new',help='New sampling rate. Ensure that filtering is performed before!',default=None)
+def preprocess_data(source_model,step,bandpass,decimator,Fs_new):
+
+    if bandpass is not None:
+        bandpass = [float(bp) for bp in bandpass.split()]
+
+    if Fs_new is not None:
+        Fs_new = float(Fs_new)
+
+    if decimator is not None:
+        decimator = int(decimator)
+
+    step = int(step)
+    
+    run_preprocess_data(source_model,step,bandpass,decimator,Fs_new)
+
 
 @run.command(help='Calculate correlations for selected source model.')
 @click.argument('source_model')

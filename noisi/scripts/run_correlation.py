@@ -51,7 +51,11 @@ def paths_input(cp,source_conf,step):
     
 def paths_output(cp,source_conf,step):
     
-    if cp[0] < cp[1]:
+
+    id1 = cp[0].split()[0]+cp[0].split()[1]
+    id2 = cp[1].split()[0]+cp[1].split()[1]
+
+    if id1 < id2 :
         inf1 = cp[0].split()
         inf2 = cp[1].split()
     else:

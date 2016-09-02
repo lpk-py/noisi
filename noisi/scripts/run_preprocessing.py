@@ -11,10 +11,11 @@ def run_preprocessing(source_config):
     config = json.load(open(configfile))
     
     files = glob(os.path.join(config['wavefield_path'],'*.h5'))
+    processed_path = os.path.join(source_config['source_path'],
+        'wavefield_processed')
     
-    
-    # determine filter parameters
-    #if source_config['preprocess_filter_kind'] == 'bandpass':
+    if not os.path.exists(processed_path):
+        os.mkdir(processed_path)
         
     # very simple embarrassingly parallel loop
     comm = MPI.COMM_WORLD
@@ -25,8 +26,8 @@ def run_preprocessing(source_config):
     
     for file in files:
 
-        newfile = os.path.join(source_config['source_path'],'wavefield_processed',
-        os.path.basename(file)+'_proc')
+        newfile = os.path.join(processed_path, os.path.basename(file))
+
         if os.path.exists(newfile):
             print "File {} was already processed, skipping.".format(os.path.basename(file))
         print "Preprocessing {}".format(os.path.basename(file))
@@ -39,9 +40,32 @@ def run_preprocessing(source_config):
             
             with WaveField(file) as wf:
                 wf.truncate(newfile,float(source_config['preprocess_truncate_sec']))
+
+
+        if source_config['preprocess_decimation_factor'] is not None:
+
+            # Already truncated file?
+            if os.path.exists(newfile):
+                newfile_temp = newfile + '.temp'
+                with WaveField(newfile) as wf:
+                    wf.decimate(decimation_factor=source_config['preprocess_decimation_factor'],
+                                outfile=newfile_temp,
+                                taper_width=0.005)
+                os.system("mv {} {}".format(newfile_temp,newfile))
+            else:
+                with WaveField(file) as wf:
+                    wf.decimate(decimation_factor=source_config['preprocess_decimation_factor'],
+                                outfile=newfile,
+                                taper_width=0.005)
+                
+
+
+
+
             
         if source_config['preprocess_filter_kind'] == 'bandpass':
 
+            # The file has been written previously by wavefield.truncate
             if os.path.exists(newfile):
                 with WaveField(newfile) as wf:
                     wf.filter_all(
@@ -53,7 +77,7 @@ def run_preprocessing(source_config):
                         zerophase=source_config['preprocess_filter_params'][3])
 
             else:
-                
+                # The file still has to be written
                 with WaveField(file) as wf:
                     wf.filter_all(
                         source_config['preprocess_filter_kind'],
@@ -61,7 +85,9 @@ def run_preprocessing(source_config):
                         freqmin=source_config['preprocess_filter_params'][0],
                         freqmax=source_config['preprocess_filter_params'][1],
                         corners=source_config['preprocess_filter_params'][2],
-                        zerophase=source_config['preprocess_filter_params'][3])
+                        zerophase=source_config['preprocess_filter_params'][3],
+                        outfile=newfile)
+
 
 
             # filtering type,overwrite=False,zerophase=True,**kwargs

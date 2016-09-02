@@ -7,6 +7,8 @@ from noisi.util import plot
 from noisi import filter
 from scipy.signal import sosfilt
 from scipy.signal.signaltools import _next_regular
+from obspy.signal.invsim import cosine_taper
+from obspy.signal.filter import integer_decimation
 import click
 from warnings import warn
 
@@ -135,7 +137,7 @@ class WaveField(object):
         
         #wf.file.close()
     
-    def filter_all(self,type,overwrite=False,zerophase=True,**kwargs):
+    def filter_all(self,type,overwrite=False,zerophase=True,outfile=None,**kwargs):
         
         if type == 'bandpass':
             sos = filter.bandpass(df=self.stats['Fs'],**kwargs)
@@ -149,13 +151,7 @@ class WaveField(object):
         
         if not overwrite:
             # Create a new hdf5 file of the same shape
-            #newfile = WaveField(shape=np.shape(self.data[:]),
-            #outfile=self.file.filename+'_proc')
-            # Copy the stats
-            #newfile.stats = self.stats.copy()
-            # Copy the sourcegrid
-            #newfile.sourcegrid=self.sourcegrid[:].copy()
-            newfile = self.copy_setup(newfile=self.file.filename+'_proc')
+            newfile = self.copy_setup(newfile=outfile)
         else:
             # Call self.file newfile
             newfile = self.file
@@ -168,15 +164,48 @@ class WaveField(object):
                     newfile.data[i,:] = sosfilt(sos,firstpass[::-1])[::-1] # then assign to newfile, which might be self.file
                 else:
                     newfile.data[i,:] = sosfilt(sos,self.data[i,:])
-                # flush
-                newfile.file.flush()
+                # flush?
+                
         if not overwrite:
-           print('Processed traces written to file %s, file closed, reopen to read / modify.' %newfile.file.filename)
+           print('Processed traces written to file %s, file closed, \
+                  reopen to read / modify.' %newfile.file.filename)
            
            newfile.file.close()
             
+
+    def decimate(self,decimation_factor,outfile,taper_width=0.005):
+        """
+        Decimate the wavefield and save to a new file 
+        """
+        
+        fs_old = self.stats['Fs']
+        freq = self.stats['Fs'] * 0.4 / float(decimation_factor)
+
+        # Get filter coeff
+        sos = filter.cheby2_lowpass(fs_old,freq)
+
+        # figure out new length
+        temp_trace = integer_decimation(self.data[0,:], decimation_factor)
+        n = len(temp_trace)
+       
+
+        # Get taper
+        # The default taper is very narrow, because it is expected that the traces are very long.
+        taper = cosine_taper(self.stats['nt'],p=taper_width)
+
+       
+        # Need a new file, because the length changes.
+        newfile = self.copy_setup(newfile=outfile,nt=n)
+
+        for i in range(self.stats['ntraces']):
             
+            temp_trace = sosfilt(sos,taper*self.data[i,:])
+            newfile.data[i,:] = integer_decimation(temp_trace, decimation_factor)
+        
     
+        self.stats['Fs'] = fs_old / float(decimation_factor)
+
+
     def space_integral(self,weights=None):
         # ToDo: have this checked; including spatial sampling!
         # ToDo: Figure out how to assign the metadata...buh

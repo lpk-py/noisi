@@ -8,6 +8,7 @@
         3,
         true
     ],
+    "preprocess_decimation_factor": null,
 	"preprocess_truncate_sec":null,
     "max_lag": 0,
     "channel": "MXZ",

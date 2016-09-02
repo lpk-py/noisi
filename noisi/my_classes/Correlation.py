@@ -2,7 +2,6 @@
 from __future__ import print_function
 import numpy as np
 import os
-import h5py
 import json
 import click
 from glob import glob
@@ -43,8 +42,13 @@ def paths_input(cp,source_conf,step):
     nsrc = os.path.join(source_conf['project_path'],
                      source_conf['source_name'],'step_'+str(step),
                      'starting_model.h5')
+
+    # Adjoint source
+    adjt = os.path.join(source_conf['project_path'],
+                     source_conf['source_name'],'step_'+str(step),
+                     'adjt',"{}--{}.sac".format(sta1,sta2))
        
-    return(wf1,wf2,nsrc)
+    return(wf1,wf2,nsrc,adjt)
     
 def paths_output(cp,source_conf,step):
     
@@ -54,17 +58,22 @@ def paths_output(cp,source_conf,step):
     sta2 = "{}.{}..{}".format(*inf2)
     
     # Correlation file
-    corr_name = "{}--{}.h5".format(sta1,sta2)
-    corr_name = os.path.join(source_conf['project_path'],
-        'green_c',
-        corr_name)
+    
     corr_trace_name = "{}--{}.sac".format(sta1,sta2)    
     corr_trace_name =  os.path.join(source_conf['project_path'],
         source_conf['source_name'],'step_'+str(step),'corr',
         corr_trace_name)   
-    return (corr_name,corr_trace_name)
+
+    # Kernel (without measurement) file
+    kern_name = "{}--{}.npy".format(sta1,sta2)
+    kern_name = os.path.join(source_conf['source_path'],
+        'step_'+str(step), 'kern',
+        kern_name)
+
+    return (kern_name,corr_trace_name)
     
-def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf,autocorr=False):
+def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
+    src,source_conf,step,autocorr=False):
     
     #ToDo: Take care of saving metainformation
     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
@@ -96,33 +105,47 @@ def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf,autocorr=False):
         n = _next_regular(nt)  
     
         # initialize new hdf5 files for correlation and green's function correlation
-        with wf1.copy_setup(corr_file,nt=n_lag) as correl, NoiseSource(src) as nsrc:
+        #with #wf1.copy_setup(corr_file,nt=n_lag) as correl, NoiseSource(src) as nsrc:
+        with NoiseSource(src) as nsrc:
+
+
+            # initialize correlation and kernel
             correlation = np.zeros(n_lag)
+
+            if step > 0:
+                kern = np.zeros(wf1.stats['ntraces'])
+                f = read(adjt)[0]
+
             # Loop over source locations
-            with click.progressbar(range(wf1.stats['ntraces']),\
-            label='Correlating...' ) as ind:
-                for i in ind:
-                   
-                    s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
-                    s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
-                    
-                    spec1 = np.fft.rfft(s1,n)
-                    spec2 = np.fft.rfft(s2,n)
-                    
-                    # ToDo: Review math ask Andreas whether it is correct
-                    # ToDo check sign convention of correlation a(t+tau)b(t) or a(t)b(t+tau)?
-                    g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                    #g1g2_tr = fftconvolve(s1,s2[::-1],mode='same')
-                    # extract Green's function correlation
-                    corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_lag)
-                    correl.data[i,:] = corr.astype(np.float32)
-                    c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
-                    correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_lag)
-                    
+            
+            for i in range(wf1.stats['ntraces']):
+               
+                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                
+                spec1 = np.fft.rfft(s1,n)
+                spec2 = np.fft.rfft(s2,n)
+                
+                # ToDo: Review math ask Andreas whether it is correct
+                # ToDo check sign convention of correlation a(t+tau)b(t) or a(t)b(t+tau)?
+                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+                #g1g2_tr = fftconvolve(s1,s2[::-1],mode='same')
+                # extract Green's function correlation
+                corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_lag)
+
+                kern[i] = np.dot(corr,f.data) * f.stats.delta
+
+                #correl.data[i,:] = corr.astype(np.float32)
+                c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_lag)
+                
+
             trace = Trace()
             trace.stats.sampling_rate = wf1.stats['Fs']
             trace.data = correlation
-            trace.write(filename=corr_int_file,format='SAC')    
+            trace.write(filename=corr_file,format='SAC')    
+            
+            np.save(kernel,kern)
             #correlation = correl.space_integral()
             
         
@@ -132,71 +155,71 @@ def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf,autocorr=False):
         #corr_file = os.path.join(model_dir, "{}--{}.sac".format(sta1,sta2))
         #correlation.write(filename=corr_file,format='SAC') #to do: Include some metadata 
 
-def corr(c,src,c_int,source_conf):
-    """
-    Obtain a 'noise correlation' from a correlation of Green's functions by factoring in the space-frequency dependent noise source.
+# def corr(c,src,c_int,source_conf):
+#     """
+#     Obtain a 'noise correlation' from a correlation of Green's functions by factoring in the space-frequency dependent noise source.
     
-    :type c: String 
-    :param c: Path to the h5-file containing the correlation of Green's functions in time domain
-    :type src: String
-    :param src:  Path to the h5-file containing the time-frequency dependent source model
-    :type c_int: String
-    :param c_int: Path to the output file
-    """
+#     :type c: String 
+#     :param c: Path to the h5-file containing the correlation of Green's functions in time domain
+#     :type src: String
+#     :param src:  Path to the h5-file containing the time-frequency dependent source model
+#     :type c_int: String
+#     :param c_int: Path to the output file
+#     """
     
     
     
-    with WaveField(c) as c, NoiseSource(src) as src:
+#     with WaveField(c) as c, NoiseSource(src) as src:
 
-        nt = c.stats['nt']
-        #n_lag = 2 * int(source_conf['max_lag'] * c.stats['Fs']) + 1 
-        correlation = np.zeros(nt)
-        n = _next_regular(2*nt-1)
+#         nt = c.stats['nt']
+#         #n_lag = 2 * int(source_conf['max_lag'] * c.stats['Fs']) + 1 
+#         correlation = np.zeros(nt)
+#         n = _next_regular(2*nt-1)
         
-        i0 = zero_buddy(nt,n,causal_function=False)
+#         i0 = zero_buddy(nt,n,causal_function=False)
         
-        with click.progressbar(range(c.stats['ntraces']),\
-        label='Convolving source...' ) as ind:
-            for i in ind:
+#         with click.progressbar(range(c.stats['ntraces']),\
+#         label='Convolving source...' ) as ind:
+#             for i in ind:
                 
                 
                 
-                #spec = np.fft.rfft(c)
-                #c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
-                #                corr = my_centered(np.fft.ifftshift(np.fft.\
-                #                irfft(g1g2_tr,n)),nt)
-                #corr = fftconvolve(src.get_spect(i),c.data[i,:],mode='same')
-                data = np.zeros(n)
-                data[i0:i0+nt] = c.data[i,:]
-                spec = np.fft.rfft(data)
+#                 #spec = np.fft.rfft(c)
+#                 #c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+#                 #                corr = my_centered(np.fft.ifftshift(np.fft.\
+#                 #                irfft(g1g2_tr,n)),nt)
+#                 #corr = fftconvolve(src.get_spect(i),c.data[i,:],mode='same')
+#                 data = np.zeros(n)
+#                 data[i0:i0+nt] = c.data[i,:]
+#                 spec = np.fft.rfft(data)
                 
-                # also the source has to be zeropadded...it is shorter than here
+#                 # also the source has to be zeropadded...it is shorter than here
                 
-                corr = np.multiply(spec,src.get_spect(i))
+#                 corr = np.multiply(spec,src.get_spect(i))
                 
-                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(corr,n)),nt)
+#                 correlation += my_centered(np.fft.ifftshift(np.fft.irfft(corr,n)),nt)
         
-        trace = Trace()
-        trace.stats.sampling_rate = c.stats['Fs']
-        trace.data = correlation
-        trace.write(filename=c_int,format='SAC')
+#         trace = Trace()
+#         trace.stats.sampling_rate = c.stats['Fs']
+#         trace.data = correlation
+#         trace.write(filename=c_int,format='SAC')
 
-#ToDo: put somewhere else
-def kern(c,adj_src,kern,source_conf):
-    """
-    ...
-    """
+# #ToDo: put somewhere else
+# def kern(c,adj_src,kern,source_conf):
+#     """
+#     ...
+#     """
     
     
-    adj_src = read(adj_src)[0]
-    delta = adj_src.stats.delta
+#     adj_src = read(adj_src)[0]
+#     delta = adj_src.stats.delta
     
-    with WaveField(c) as c:
+#     with WaveField(c) as c:
 
-        kern = np.zeros(c.stats['ntraces'])
-        f = my_centered(adj_src.data,(2*source_conf['max_lag']*c.stats['Fs']+1))
+#         kern = np.zeros(c.stats['ntraces'])
+#         f = my_centered(adj_src.data,(2*source_conf['max_lag']*c.stats['Fs']+1))
         
-        kernel = np.dot(c.data[:],f) * delta
+#         kernel = np.dot(c.data[:],f) * delta
         
     
         
@@ -221,18 +244,17 @@ def run_corr(source_configfile,step=0):
     for cp in p:
         
         try:
-            wf1,wf2,src = paths_input(cp,source_conf,step)
+            wf1,wf2,src,adjt = paths_input(cp,source_conf,step)
             
-            c, c_int = paths_output(cp,source_conf,step)
+            kernel,corr = paths_output(cp,source_conf,step)
             
         except:
             print('Could not determine correlation for: ')
             print(cp)
             continue
             
-        if not os.path.exists(c):
-            if step == 0:
-                g1g2_corr(wf1,wf2,c,c_int,src,source_conf)
+        if not os.path.exists(corr):
+            g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_conf,step)
         
         #corr(c,src,c_int)
                 

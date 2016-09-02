@@ -13,6 +13,7 @@ import warnings
 from scipy.signal import iirfilter
 from scipy.signal import sosfilt
 from scipy.signal import zpk2sos
+from scipy.signal import cheb2ord, cheby2
 
 """
 Various Seismogram Filtering Functions from obspy
@@ -23,6 +24,28 @@ Various Seismogram Filtering Functions from obspy
     GNU Lesser General Public License, Version 3
     (https://www.gnu.org/copyleft/lesser.html)
 """
+
+def cheby2_lowpass(df,freq,maxorder=8):
+    # From obspy
+    nyquist = df * 0.5
+    # rp - maximum ripple of passband, rs - attenuation of stopband
+    rp, rs, order = 1, 96, 1e99
+    ws = freq / nyquist  # stop band frequency
+    wp = ws  # pass band frequency
+    # raise for some bad scenarios
+    if ws > 1:
+        ws = 1.0
+        msg = "Selected corner frequency is above Nyquist. " + \
+              "Setting Nyquist as high corner."
+        warnings.warn(msg)
+    while True:
+        if order <= maxorder:
+            break
+        wp = wp * 0.99
+        order, wn = cheb2ord(wp, ws, rp, rs, analog=0)
+    (z, p, k) = cheby2(order, rs, wn, btype='low', analog=0, output='zpk')
+    return zpk2sos(z, p, k)
+
 
 def bandpass(freqmin, freqmax, df, corners=4):
     """

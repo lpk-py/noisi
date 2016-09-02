@@ -36,17 +36,24 @@ def paths_input(cp,source_conf,step):
         dir = conf['wavefield_path']
         
     extens = '.h5_proc' if source_conf['preprocess_do'] else '.h5'
-    
+
+   
     wf1 = glob(os.path.join(dir,sta1+extens))[0]
     wf2 = glob(os.path.join(dir,sta2+extens))[0]
+
     
     
     # Starting model noise source
     nsrc = os.path.join(source_conf['project_path'],
                      source_conf['source_name'],'step_'+str(step),
                      'starting_model.h5')
+
+    # Adjoint source
+    adjt = os.path.join(source_conf['source_path'],
+                     'step_'+str(step-1),
+                     'adjt',"{}--{}.sac".format(sta1,sta2))
     
-    return(wf1,wf2,nsrc)
+    return(wf1,wf2,nsrc,adjt)
     
     
 def paths_output(cp,source_conf,step):
@@ -67,27 +74,34 @@ def paths_output(cp,source_conf,step):
     sta2 = "{}.{}..{}".format(*(inf2[0:2]+[channel]))
     
     # Correlation file
-    corr_name = "{}--{}.h5".format(sta1,sta2)
+    #corr_name = "{}--{}.h5".format(sta1,sta2)
+     # Kernel (without measurement) file
+    kern_name = "{}--{}.npy".format(sta1,sta2)
+    kern_name = os.path.join(source_conf['source_path'],
+        'step_'+str(step), 'kern',
+        kern_name)
+
+   
     
-    ktype = source_conf['ktype']
-    print(ktype)
-    if ktype == 'fd':
-        corr_name = os.path.join(source_conf['source_path'],
-        'green_c_fd',
-        corr_name)
-    elif ktype == 'td':
-        corr_name = os.path.join(source_conf['source_path'],
-        'green_c',
-        corr_name)
-    else:
-        msg = ('ktype parameter must be fd or td.')
-        raise NotImplementedError(msg)
+    # ktype = source_conf['ktype']
+    # print(ktype)
+    # if ktype == 'fd':
+    #     corr_name = os.path.join(source_conf['source_path'],
+    #     'green_c_fd',
+    #     corr_name)
+    # elif ktype == 'td':
+    #     corr_name = os.path.join(source_conf['source_path'],
+    #     'green_c',
+    #     corr_name)
+    # else:
+    #     msg = ('ktype parameter must be fd or td.')
+    #     raise NotImplementedError(msg)
         
     corr_trace_name = "{}--{}.sac".format(sta1,sta2)    
-    corr_trace_name =  os.path.join(source_conf['project_path'],
-        source_conf['source_name'],'step_'+str(step),'corr',
+    corr_trace_name =  os.path.join(source_conf['source_path'],
+        'step_'+str(step),'corr',
         corr_trace_name)   
-    return (corr_name,corr_trace_name)
+    return (kern_name,corr_trace_name)
     
 def get_ns(wf1,source_conf):
     
@@ -199,7 +213,8 @@ def g1g2_corr_fd(wf1,wf2,corr_file,corr_int_file,src,source_conf):
         correlation = correl.space_integral()
 
 
-def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
+def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
+    src,source_conf,step):
     
     #ToDo: Take care of saving metainformation
     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
@@ -221,42 +236,51 @@ def g1g2_corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
         
         # initialize new hdf5 files for correlation and green's function correlation
         #with wf1.copy_setup(corr_file,nt=n_corr) as correl, NoiseSource(src) as nsrc:
-        with wf1.copy_setup(corr_file,nt=n_corr) as correl:
+        #with wf1.copy_setup(corr_file,nt=n_corr) as correl:
         
 
-            nsrc = NoiseSource(src)
+        with NoiseSource(src) as nsrc:
+
             correlation = np.zeros(n_corr)
+            if step > 0:
+                kern = np.zeros(wf1.stats['ntraces'])
+                f = read(adjt)[0]
             # Loop over source locations
-            with click.progressbar(range(wf1.stats['ntraces']),\
-            label='Correlating...' ) as ind:
-                for i in ind:
-                   
-                    s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
-                    s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
-                    
-                    spec1 = np.fft.rfft(s1,n)
-                    spec2 = np.fft.rfft(s2,n)
-                    
-                  
-                    g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                    
-                    # extract Green's function correlation here
-                    # Save only as much as the adjoint source will be long.
-                    # This has to be done only once.
-                    corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
-                    correl.data[i,:] = corr.astype(np.float32)
-                    
-                    
-                    c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
-                    correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                    
-                    if i%1000 == 0:
-                        correl.file.flush()
+            #with click.progressbar(range(wf1.stats['ntraces']),\
+            #label='Correlating...' ) as ind:
+            for i in range(wf1.stats['ntraces']):
+               
+                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                
+                spec1 = np.fft.rfft(s1,n)
+                spec2 = np.fft.rfft(s2,n)
+                
+              
+                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+                
+                # extract Green's function correlation here
+                # Save only as much as the adjoint source will be long.
+                # This has to be done only once.
+                corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
+
+
+                if step > 0:
+                    kern[i] = np.dot(corr,f.data) * f.stats.delta
+                
+                c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                
+                if i%10000 == 0:
+                    print("Finished {} source locations.".format(i))
                     
         trace = Trace()
         trace.stats.sampling_rate = wf1.stats['Fs']
         trace.data = correlation
-        trace.write(filename=corr_int_file,format='SAC')    
+        trace.write(filename=corr_file,format='SAC')
+
+        if step > 0:
+            np.save(kernel,kern)   
             
         
 
@@ -360,6 +384,10 @@ def corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
 
 
 def run_corr(source_configfile,step):
+
+    step = int(step)
+
+
     #ToDo think about that configuration decorator
     source_config=json.load(open(source_configfile))
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
@@ -382,7 +410,7 @@ def run_corr(source_configfile,step):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-
+    
 
     # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 
     # this will prevent that many processes try to access the same hdf5 file all at once.
@@ -394,23 +422,23 @@ def run_corr(source_configfile,step):
     
     for cp in p_p:
         
-        try:
-            wf1,wf2,src = paths_input(cp,source_config,step)
-            print(wf1,wf2,src)
+        #try:
+        wf1,wf2,src,adjt = paths_input(cp,source_config,step)
+        print(wf1,wf2,src)
         
-            c, c_int = paths_output(cp,source_config,step)
+        kernel,corr = paths_output(cp,source_config,step)
             
             
-        except:
-            print('Could not determine correlation for: ')
-            print(cp)
-            continue
+        #except:
+        #    print('Could not determine correlation for: ')
+        #    print(cp)
+        #    continue
             
-        if not os.path.exists(c):
+        if not os.path.exists(corr):
             if int(step) == 0:
                 if source_config['ktype'] == 'td':
                     print('Time domain preliminary kernel...')
-                    g1g2_corr(wf1,wf2,c,c_int,src,source_config)
+                    g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,step)
                 elif source_config['ktype'] == 'fd':
                     print('Frequency domain preliminary kernel...')
                     g1g2_corr_fd(wf1,wf2,c,c_int,src,source_config)

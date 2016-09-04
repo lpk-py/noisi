@@ -35,11 +35,11 @@ def paths_input(cp,source_conf,step):
     else:
         dir = conf['wavefield_path']
         
-    extens = '.h5_proc' if source_conf['preprocess_do'] else '.h5'
+   
 
    
-    wf1 = glob(os.path.join(dir,sta1+extens))[0]
-    wf2 = glob(os.path.join(dir,sta2+extens))[0]
+    wf1 = glob(os.path.join(dir,sta1+'.h5'))[0]
+    wf2 = glob(os.path.join(dir,sta2+'.h5'))[0]
 
     
     
@@ -109,6 +109,8 @@ def get_ns(wf1,source_conf):
     with WaveField(wf1) as wf1:
         nt = int(wf1.stats['nt'])
         Fs = round(wf1.stats['Fs'],8)
+
+    print(Fs)
     
     # Necessary length of zero padding for carrying out frequency domain correlations/convolutions
     n = _next_regular(2*nt-1)     

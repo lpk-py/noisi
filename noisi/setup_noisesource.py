@@ -45,7 +45,7 @@ source_config = json.load(open(os.path.join(sourcepath,'source_config.json')))
 print 'Loaded config files.'
 
 if source_config['preprocess_do']:
-    ext = '*.h5_proc'
+    ext = '*.h5'
     wavefield_path = os.path.join(sourcepath,'wavefield_processed')
 else:
     ext = '*.h5'

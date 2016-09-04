@@ -195,15 +195,16 @@ class WaveField(object):
 
        
         # Need a new file, because the length changes.
-        newfile = self.copy_setup(newfile=outfile,nt=n)
+        with self.copy_setup(newfile=outfile,nt=n) as newfile:
 
-        for i in range(self.stats['ntraces']):
+            for i in range(self.stats['ntraces']):
+                
+                temp_trace = sosfilt(sos,taper*self.data[i,:])
+                newfile.data[i,:] = integer_decimation(temp_trace, decimation_factor)
             
-            temp_trace = sosfilt(sos,taper*self.data[i,:])
-            newfile.data[i,:] = integer_decimation(temp_trace, decimation_factor)
         
-    
-        self.stats['Fs'] = fs_old / float(decimation_factor)
+            newfile.stats['Fs'] = fs_old / float(decimation_factor)
+
 
 
     def space_integral(self,weights=None):

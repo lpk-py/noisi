@@ -179,7 +179,7 @@ def measurement(source_model,step):
 
 def kernel(source_model,step):
     source_model = os.path.join(source_model,'source_config.json')
-    run_kernel(source_model,step)
+    run_corr(source_model,step,kernelrun=True)
     
     
 #import config.configure as conf

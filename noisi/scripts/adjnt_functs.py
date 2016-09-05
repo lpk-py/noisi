@@ -1,6 +1,6 @@
 import numpy as np
 from math import pi
-from noisi.scripts import measurements as rm
+#from noisi.scripts import measurements as rm
 from noisi.util import windows as wn
 
 
@@ -9,8 +9,8 @@ from noisi.util import windows as wn
 def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
     window = wn.get_window(corr_o.stats,g_speed,window_params)
     win = window[0]
-    msr_o = rm.log_en_ratio(corr_o,g_speed,window_params)
-    msr_s = rm.log_en_ratio(corr_s,g_speed,window_params)
+    #msr_o = rm.log_en_ratio(corr_o,g_speed,window_params)
+    #msr_s = rm.log_en_ratio(corr_s,g_speed,window_params)
     data = wn.my_centered(corr_s.data,corr_o.stats.npts)
 
 
@@ -21,15 +21,16 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
         E_minus = np.trapz(np.power(sig_a,2))*corr_s.stats.delta
         u_plus = np.multiply(sig_c,win)
         u_minus = np.multiply(sig_a,win[::-1])
-        adjt_src = 2./pi * (msr_s-msr_o) * (u_plus / E_plus - u_minus / E_minus)
+        #adjt_src = 2./pi * (msr_s-msr_o) * (u_plus / E_plus - u_minus / E_minus)
+        adjt_src = 2./pi * (u_plus / E_plus - u_minus / E_minus)
     else:
         adjt_src = win-win+np.nan
     return adjt_src
     
 def energy(corr_o,corr_s,g_speed,window_params):
     
-    msr_o = rm.energy(corr_o,g_speed,window_params)
-    msr_s = rm.energy(corr_s,g_speed,window_params)
+    #msr_o = rm.energy(corr_o,g_speed,window_params)
+    #msr_s = rm.energy(corr_s,g_speed,window_params)
     
     
     window = wn.get_window(corr_o.stats,g_speed,window_params)
@@ -41,7 +42,8 @@ def energy(corr_o,corr_s,g_speed,window_params):
 
     if window[2]:    
         u = np.multiply(win,corr_s.data)
-        adjt_src = 2./(msr_s-msr_o) * u
+        #adjt_src = 2./(msr_s-msr_o) * u
+        adjt_src = u
     else:
         adjt_src = win-win+np.nan
     

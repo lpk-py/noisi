@@ -50,7 +50,7 @@ def paths_input(cp,source_conf,step):
 
     # Adjoint source
     adjt = os.path.join(source_conf['source_path'],
-                     'step_'+str(step-1),
+                     'step_'+str(step),
                      'adjt',"{}--{}.sac".format(sta1,sta2))
     
     return(wf1,wf2,nsrc,adjt)
@@ -216,7 +216,7 @@ def g1g2_corr_fd(wf1,wf2,corr_file,corr_int_file,src,source_conf):
 
 
 def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
-    src,source_conf,step):
+    src,source_conf,kernelrun):
     
     #ToDo: Take care of saving metainformation
     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
@@ -244,7 +244,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
         with NoiseSource(src) as nsrc:
 
             correlation = np.zeros(n_corr)
-            if step > 0:
+            if kernelrun:
                 kern = np.zeros(wf1.stats['ntraces'])
                 f = read(adjt)[0]
             # Loop over source locations
@@ -261,28 +261,32 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
               
                 g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
                 
-                # extract Green's function correlation here
-                # Save only as much as the adjoint source will be long.
-                # This has to be done only once.
-                corr = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
 
 
-                if step > 0:
-                    kern[i] = np.dot(corr,f.data) * f.stats.delta
+                if kernelrun:
+
+                    corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
+                    kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
+                    
                 
-                c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
-                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                else:
+                    c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+                    correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
                 
                 if i%10000 == 0:
                     print("Finished {} source locations.".format(i))
-                    
-        trace = Trace()
-        trace.stats.sampling_rate = wf1.stats['Fs']
-        trace.data = correlation
-        trace.write(filename=corr_file,format='SAC')
+        
 
-        if step > 0:
-            np.save(kernel,kern)   
+        
+
+        if kernelrun:
+            np.save(kernel,kern) 
+
+        else:
+            trace = Trace()
+            trace.stats.sampling_rate = wf1.stats['Fs']
+            trace.data = correlation
+            trace.write(filename=corr_file,format='SAC')
             
         
 
@@ -385,7 +389,7 @@ def corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
 
 
 
-def run_corr(source_configfile,step):
+def run_corr(source_configfile,step,kernelrun=False):
 
     step = int(step)
 
@@ -436,16 +440,24 @@ def run_corr(source_configfile,step):
         #    print(cp)
         #    continue
             
-        if not os.path.exists(corr):
+        if os.path.exists(corr) and not kernelrun:
+            continue
+
+        if os.path.exists(kernel) and kernelrun:
+            continue
+
+        else:
             if int(step) == 0:
                 if source_config['ktype'] == 'td':
+
                     print('Time domain preliminary kernel...')
-                    g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,step)
+                    g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
+
                 elif source_config['ktype'] == 'fd':
                     print('Frequency domain preliminary kernel...')
                     g1g2_corr_fd(wf1,wf2,c,c_int,src,source_config)
             else:
-                corr(wf1,wf2,c,c_int,src,source_config)
+                corr(wf1,wf2,c,c_int,src,source_config,kernelrun=kernelrun)
         
         #corr(c,src,c_int)
                 

@@ -11,7 +11,7 @@ from noisi.scripts.run_correlation import run_corr
 from noisi.util.prepare_sem_input import prepare_specfem_input
 from noisi.scripts.run_measurement import run_measurement
 from noisi.scripts.run_adjointsrcs import run_adjointsrcs
-from noisi.scripts.run_kernel import run_kernel
+#from noisi.scripts.run_kernel import run_kernel
 from noisi.scripts.run_preprocessing import run_preprocessing
 from noisi.scripts.run_preprocessing_data import run_preprocess_data
 
@@ -180,6 +180,15 @@ def measurement(source_model,step):
 def kernel(source_model,step):
     source_model = os.path.join(source_model,'source_config.json')
     run_corr(source_model,step,kernelrun=True)
+
+
+@run.command(help='Assemble descent direction from spatial kernels and measurements')
+@click.argument('source_model')
+@click.argument('step')
+
+def gradient(source_model,step):
+    source_model = os.path.join(source_model,'source_config.json')
+    assemble_grad(source_model,step)
     
     
 #import config.configure as conf

@@ -127,92 +127,6 @@ def get_ns(wf1,source_conf):
     return nt,n,n_corr
         
     
-def g1g2_corr_fd(wf1,wf2,corr_file,corr_int_file,src,source_conf):
-    
-    #ToDo: Take care of saving metainformation
-    #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
-    #ToDo: check whether to include autocorrs from user (now hardcoded off)
-    #ToDo: Parallel loop(s)
-    #ToDo tests
-
-    ntimes, n, n_corr = get_ns(wf1,source_conf)
-    print('------')
-    print('ntimes: '+str(ntimes))
-    if n%2 == 0:
-        n_freq = n / 2 + 1
-    else:
-        n_freq = (n+1) / 2 
-    print('n_freq: '+str(n_freq))
-    print('n: '+str(n))
-    print('------')
-    taper = cosine_taper(ntimes,p=0.05)
-    
-    print('got time lengths, taper')
-    
-    
-    # N needs to be saved for future zero padding.
-    save_n = open(os.path.join(source_conf['project_path'],source_conf['source_name'],
-    'n.txt'),'w')
-    print(str(n),file=save_n)
-    save_n.close()
-    # Zero padding should add an acausal part to the Green's function
-    mid_index = zero_buddy(ntimes,n,causal_function=True)
-    
-    
-    
-    with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
-        
-        print('opened wave field files')
-        
-        if wf1.stats['Fs'] != wf2.stats['Fs']:
-            msg = 'Sampling rates of synthetic green\'s functions must match.'
-            raise ValueError(msg)
-        
-        # initialize new hdf5 files for correlation and green's function correlation
-        #with wf1.copy_setup(corr_file,nt=n_freq,complex=True) as correl,\
-        #NoiseSource(src) as nsrc:
-        correl = wf1.copy_setup(corr_file,nt=n_freq,complex=True)
-        nsrc = NoiseSource(src)
-        print('opened noise source and output file.')
-        
-        correlation = np.zeros(n_corr)
-        print('initialized correlations.')
-        
-        
-        
-        # Loop over source locations
-        with click.progressbar(range(wf1.stats['ntraces']),\
-        label='Correlating...' ) as ind:
-            for i in ind:
-                
-                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
-                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
-                
-                #s1[mid_index:mid_index+ntimes] = wf1.data[i,:]*taper
-                #s2[mid_index:mid_index+ntimes] = wf2.data[i,:]*taper
-                
-                spec1 = np.fft.rfft(s1,n)
-                spec2 = np.fft.rfft(s2,n)
-                
-              
-                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                
-                # extract Green's function correlation here
-                # Save only as much as the adjoint source will be long.
-                # This has to be done only once.
-                correl.data_i[i,:] = np.imag(g1g2_tr).astype(np.float32)
-                correl.data_r[i,:] = np.real(g1g2_tr).astype(np.float32)
-                correl.file.flush()
-                
-                c = np.multiply(spec1,np.conjugate(spec2))
-                c = np.multiply(c,nsrc.get_spect(i))                
-                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                
-        trace = Trace()
-        trace.stats.sampling_rate = wf1.stats['Fs']
-        trace.data = correlation
-        trace.write(filename=corr_int_file,format='SAC')    
-        correlation = correl.space_integral()
 
 
 def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
@@ -247,6 +161,8 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
             if kernelrun:
                 kern = np.zeros(wf1.stats['ntraces'])
                 f = read(adjt)[0]
+                f.data = my_centered(f.data,n_corr)
+                
             # Loop over source locations
             #with click.progressbar(range(wf1.stats['ntraces']),\
             #label='Correlating...' ) as ind:
@@ -260,17 +176,18 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 
               
                 g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                
+                c = np.multiply(g1g2_tr,nsrc.get_spect(i))
 
 
                 if kernelrun:
-
-                    corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(g1g2_tr,n)),n_corr)
+                    # The frequency spectrum of the noise source is included here
+                    corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                    # A Riemann sum -- one could actually build in a more fancy integration here
                     kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
                     
                 
                 else:
-                    c = np.multiply(g1g2_tr,nsrc.get_spect(i))                
+                                    
                     correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
                 
                 if i%10000 == 0:
@@ -290,51 +207,6 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
             
         
 
-
-def corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
-    
-    #ToDo: Take care of saving metainformation
-    #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
-    #ToDo: check whether to include autocorrs from user (now hardcoded off)
-    #ToDo: Parallel loop(s)
-    #ToDo tests
-    
-    nt, n, n_corr = get_ns(wf1,source_conf)
-    if source_config['ktype'] == 'fd':
-        n_corr = nt
-    taper = cosine_taper(nt,p=0.05)
-    
-    with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
-        
-        
-        if wf1.stats['Fs'] != wf2.stats['Fs']:
-            msg = 'Sampling rates of synthetic green\'s functions must match.'
-            raise ValueError(msg)
-        
-        
-        # initialize new hdf5 files for correlation and green's function correlation
-        with NoiseSource(src) as nsrc:
-            correlation = np.zeros(n_corr)
-            # Loop over source locations
-            
-            for i in range(wf1.stats['ntraces']):
-               
-                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
-                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
-                
-                spec1 = np.fft.rfft(s1,n)
-                spec2 = np.fft.rfft(s2,n)
-                
-              
-                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
-                c = np.multiply(g1g2_tr,nsrc.get_spect(i))             
-                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                    
-            trace = Trace()
-            trace.stats.sampling_rate = wf1.stats['Fs']
-            trace.data = correlation
-            trace.write(filename=corr_int_file,format='SAC')    
-            correlation = correl.space_integral()
 
 
 #def corr(c,src,c_int,source_conf):
@@ -474,7 +346,137 @@ def run_corr(source_configfile,step,kernelrun=False):
                 
                 
                 
+# def g1g2_corr_fd(wf1,wf2,corr_file,corr_int_file,src,source_conf):
+    
+#     #ToDo: Take care of saving metainformation
+#     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
+#     #ToDo: check whether to include autocorrs from user (now hardcoded off)
+#     #ToDo: Parallel loop(s)
+#     #ToDo tests
+
+#     ntimes, n, n_corr = get_ns(wf1,source_conf)
+#     print('------')
+#     print('ntimes: '+str(ntimes))
+#     if n%2 == 0:
+#         n_freq = n / 2 + 1
+#     else:
+#         n_freq = (n+1) / 2 
+#     print('n_freq: '+str(n_freq))
+#     print('n: '+str(n))
+#     print('------')
+#     taper = cosine_taper(ntimes,p=0.05)
+    
+#     print('got time lengths, taper')
+    
+    
+#     # N needs to be saved for future zero padding.
+#     save_n = open(os.path.join(source_conf['project_path'],source_conf['source_name'],
+#     'n.txt'),'w')
+#     print(str(n),file=save_n)
+#     save_n.close()
+#     # Zero padding should add an acausal part to the Green's function
+#     mid_index = zero_buddy(ntimes,n,causal_function=True)
+    
+    
+    
+#     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
+        
+#         print('opened wave field files')
+        
+#         if wf1.stats['Fs'] != wf2.stats['Fs']:
+#             msg = 'Sampling rates of synthetic green\'s functions must match.'
+#             raise ValueError(msg)
+        
+#         # initialize new hdf5 files for correlation and green's function correlation
+#         #with wf1.copy_setup(corr_file,nt=n_freq,complex=True) as correl,\
+#         #NoiseSource(src) as nsrc:
+#         correl = wf1.copy_setup(corr_file,nt=n_freq,complex=True)
+#         nsrc = NoiseSource(src)
+#         print('opened noise source and output file.')
+        
+#         correlation = np.zeros(n_corr)
+#         print('initialized correlations.')
+        
+        
+        
+#         # Loop over source locations
+#         with click.progressbar(range(wf1.stats['ntraces']),\
+#         label='Correlating...' ) as ind:
+#             for i in ind:
                 
+#                 s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+#                 s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
                 
+#                 #s1[mid_index:mid_index+ntimes] = wf1.data[i,:]*taper
+#                 #s2[mid_index:mid_index+ntimes] = wf2.data[i,:]*taper
                 
+#                 spec1 = np.fft.rfft(s1,n)
+#                 spec2 = np.fft.rfft(s2,n)
                 
+              
+#                 g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+                
+#                 # extract Green's function correlation here
+#                 # Save only as much as the adjoint source will be long.
+#                 # This has to be done only once.
+#                 correl.data_i[i,:] = np.imag(g1g2_tr).astype(np.float32)
+#                 correl.data_r[i,:] = np.real(g1g2_tr).astype(np.float32)
+#                 correl.file.flush()
+                
+#                 c = np.multiply(spec1,np.conjugate(spec2))
+#                 c = np.multiply(c,nsrc.get_spect(i))                
+#                 correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                
+#         trace = Trace()
+#         trace.stats.sampling_rate = wf1.stats['Fs']
+#         trace.data = correlation
+#         trace.write(filename=corr_int_file,format='SAC')    
+#         correlation = correl.space_integral()
+     
+                
+
+# def corr(wf1,wf2,corr_file,corr_int_file,src,source_conf):
+    
+#     #ToDo: Take care of saving metainformation
+#     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
+#     #ToDo: check whether to include autocorrs from user (now hardcoded off)
+#     #ToDo: Parallel loop(s)
+#     #ToDo tests
+    
+#     nt, n, n_corr = get_ns(wf1,source_conf)
+#     if source_config['ktype'] == 'fd':
+#         n_corr = nt
+#     taper = cosine_taper(nt,p=0.05)
+    
+#     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
+        
+        
+#         if wf1.stats['Fs'] != wf2.stats['Fs']:
+#             msg = 'Sampling rates of synthetic green\'s functions must match.'
+#             raise ValueError(msg)
+        
+        
+#         # initialize new hdf5 files for correlation and green's function correlation
+#         with NoiseSource(src) as nsrc:
+#             correlation = np.zeros(n_corr)
+#             # Loop over source locations
+            
+#             for i in range(wf1.stats['ntraces']):
+               
+#                 s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+#                 s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                
+#                 spec1 = np.fft.rfft(s1,n)
+#                 spec2 = np.fft.rfft(s2,n)
+                
+              
+#                 g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+#                 c = np.multiply(g1g2_tr,nsrc.get_spect(i))             
+#                 correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                    
+#             trace = Trace()
+#             trace.stats.sampling_rate = wf1.stats['Fs']
+#             trace.data = correlation
+#             trace.write(filename=corr_int_file,format='SAC')    
+#             correlation = correl.space_integral()
+             

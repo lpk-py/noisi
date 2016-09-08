@@ -69,7 +69,7 @@ def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synt
 
 
 
-def measurement(source_config,mtype,step,**options):
+def measurement(source_config,mtype,step,bandpass,**options):
     
     """
     Get measurements on noise correlation data and synthetics. 
@@ -117,6 +117,15 @@ def measurement(source_config,mtype,step,**options):
                 print('\nCould not read synthetics: ' + synth_filename)
                 i+=1
                 continue
+
+            if bandpass is not None:
+                tr_o.filter('bandpass',freqmin=bandpass[0],
+                    freqmax=bandpass[1],corners=bandpass[2],
+                    zerophase=True)
+                tr_s.filter('bandpass',freqmin=bandpass[0],
+                    freqmax=bandpass[1],corners=bandpass[2],
+                    zerophase=True)
+              
             tr_s.stats.sac = tr_o.stats.sac.copy() #ToDo: Give the stats to this thing before!
             tr_s.data = my_centered(tr_s.data,tr_o.stats.npts)    
             # Get all the necessary information
@@ -157,6 +166,9 @@ def run_measurement(source_configfile,measr_configfile,step):
     measr_config=json.load(open(measr_configfile))
     
     mtype = measr_config['mtype']
+
+    bandpass = measr_config['bandpass']
+    
     
     # TODo all available misfits --  what parameters do they need (if any.)
     if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
@@ -171,5 +183,5 @@ def run_measurement(source_configfile,measr_configfile,step):
         window_params['causal_side']    =    measr_config['window_params_causal']
         window_params['plot']           =    measr_config['window_plot_measurements']
     
-    measurement(source_config,mtype,step,g_speed=g_speed,window_params=window_params)
+    measurement(source_config,mtype,step,bandpass=bandpass,g_speed=g_speed,window_params=window_params)
     

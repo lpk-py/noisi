@@ -14,7 +14,7 @@ from noisi.scripts.run_adjointsrcs import run_adjointsrcs
 #from noisi.scripts.run_kernel import run_kernel
 from noisi.scripts.run_preprocessing import run_preprocessing
 from noisi.scripts.run_preprocessing_data import run_preprocess_data
-
+from noisi.scripts.assemble_gradient import assemble_descent_dir
 @click.group()
 def run():
     """
@@ -188,7 +188,7 @@ def kernel(source_model,step):
 
 def gradient(source_model,step):
     source_model = os.path.join(source_model,'source_config.json')
-    assemble_grad(source_model,step)
+    assemble_descent_dir(source_model,step)
     
     
 #import config.configure as conf

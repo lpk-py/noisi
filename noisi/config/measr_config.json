@@ -2,6 +2,8 @@
     "date_created": "",
     "mtype":"",
 	"g_speed":3000,
+	"bandpass":null,
+	"bandpass_params":[],
 	"window_params_wtype":"boxcar",
 	"window_params_hw":200,
 	"window_params_win_overlap":false,

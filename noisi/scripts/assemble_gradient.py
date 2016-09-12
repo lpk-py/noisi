@@ -54,7 +54,7 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 		
 
 # multiply kernel and measurement, add to descent dir
-		kernel = np.load(kernelfile) * data.at[i,'msr']
+		kernel = np.load(kernelfile) * data.at[i,'obs']
 
 		gradient += kernel
 
@@ -68,3 +68,4 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 	plotfile = os.path.join(datadir,'step_'+step,'grad_all.png')
 
 	plot_grid(grd[0],grd[1],gradient,outfile=plotfile)
+	

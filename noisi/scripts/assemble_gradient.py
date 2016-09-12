@@ -64,11 +64,14 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 # save
 		kernelfile = os.path.join(datadir,'grad',os.path.basename(kernelfile))
 		np.save(kernelfile, kernel)
+
+		del kernel
+
 # plot
 	
 	kernelfile = os.path.join(datadir,'grad','grad_all.npy')
 	np.save(kernelfile,gradient)
-	plotfile = os.path.join(datadir,'step_'+step,'grad_all.png')
+	#plotfile = os.path.join(datadir,'step_'+step,'grad_all.png')
 
-	plot_grid(grd[0],grd[1],gradient,outfile=plotfile)
+	#plot_grid(grd[0],grd[1],gradient,outfile=plotfile)
 	

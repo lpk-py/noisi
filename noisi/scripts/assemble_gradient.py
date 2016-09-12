@@ -51,7 +51,10 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 		sta2 = "{}.{}..MXZ".format(*sta2.split('.')[0:2])
 	
 		kernelfile = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
-		
+		if not os.path.exists(kernelfile):
+			print("File does not exist:")
+			print(kernelfile)
+			continue
 
 # multiply kernel and measurement, add to descent dir
 		kernel = np.load(kernelfile) * data.at[i,'obs']

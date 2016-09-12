@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import json
+from math import isnan
 from noisi.util.plot import plot_grid
 
 
@@ -54,7 +55,7 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 		kernelfile = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
 		if not os.path.exists(kernelfile):
 			print("File does not exist:")
-			print(kernelfile)
+			print(os.path.basename(kernelfile))
 			continue
 
 
@@ -62,12 +63,17 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 		kernel = np.load(kernelfile)
 		if True in np.isnan(kernel):
 			print("kernel contains nan, skipping")
-			print(kernelfile)
+			print(os.path.basename(kernelfile))
 			continue
 
 
-# multiply kernel and measurement, add to descent dir		
-		kernel *= data.at[i,'obs']
+# multiply kernel and measurement, add to descent dir. Skip if entry is nan	
+		if isnan(data.at[i,'obs']):
+			print("No measurement in dataset for:")
+			print(os.path.basename(kernelfile))
+			continue
+		else:
+			kernel *= data.at[i,'obs']
 
 
 		gradient += kernel

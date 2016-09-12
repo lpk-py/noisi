@@ -17,6 +17,7 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 # Read in the csv files of measurement.
 
 	data = pd.read_csv(msrfile)
+	print(data)
 
 # allocate the kernel array
 	grd = np.load(os.path.join(source_config['project_path'],'sourcegrid.npy'))
@@ -56,8 +57,18 @@ def assemble_descent_dir(source_model,step,snr_min=0):
 			print(kernelfile)
 			continue
 
-# multiply kernel and measurement, add to descent dir
-		kernel = np.load(kernelfile) * data.at[i,'obs']
+
+# load kernel
+		kernel = np.load(kernelfile)
+		if True in np.isnan(kernel):
+			print("kernel contains nan, skipping")
+			print(kernelfile)
+			continue
+
+
+# multiply kernel and measurement, add to descent dir		
+		kernel *= data.at[i,'obs']
+
 
 		gradient += kernel
 

@@ -92,7 +92,7 @@ def get_window(stats,g_speed,params):
     ind_lo = int((dist/g_speed-params['hw'])*Fs) + s_0
     ind_hi = int((dist/g_speed+params['hw'])*Fs) + s_0
     ind_lo_n = ind_hi + int(params['sep_noise']*params['hw']*Fs)
-    ind_hi_n = ind_lo + int(2*params['hw']*Fs)
+    ind_hi_n = ind_lo_n + int(2*params['hw']*Fs)
     
     
     # Checks..overlap, out of bounds
@@ -147,3 +147,7 @@ def snratio(correlation,g_speed,window_params):
     else:
         snr = np.nan
     return snr  
+
+
+
+

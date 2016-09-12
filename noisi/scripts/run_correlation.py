@@ -18,7 +18,7 @@ from noisi.util.windows import my_centered, zero_buddy
 from noisi.util.corr_pairs import define_correlationpairs
 
 #ToDo: put in the possibility to run on mixed channel pairs
-def paths_input(cp,source_conf,step):
+def paths_input(cp,source_conf,step,kernelrun):
     
     inf1 = cp[0].split()
     inf2 = cp[1].split()
@@ -43,8 +43,16 @@ def paths_input(cp,source_conf,step):
 
     
     
-    # Starting model noise source
-    nsrc = os.path.join(source_conf['project_path'],
+    # Starting model for the noise source
+    if kernelrun:
+        # this is a bit of an odd construction. The base model contains no spatial weights if the gradient is for spatial weights.
+        # If even the spectral weights get updated, then it should not even contain spectral weights. 
+        # But so far, so good.
+        nsrc = os.path.join(source_conf['project_path'],
+                     source_conf['source_name'],'step_'+str(step),
+                     'base_model.h5')
+    else:
+        nsrc = os.path.join(source_conf['project_path'],
                      source_conf['source_name'],'step_'+str(step),
                      'starting_model.h5')
 
@@ -190,7 +198,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                                     
                     correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
                 
-                if i%10000 == 0:
+                if i%50000 == 0:
                     print("Finished {} source locations.".format(i))
         
 
@@ -300,17 +308,17 @@ def run_corr(source_configfile,step,kernelrun=False):
     
     for cp in p_p:
         
-        #try:
-        wf1,wf2,src,adjt = paths_input(cp,source_config,step)
-        print(wf1,wf2,src)
+        try:
+            wf1,wf2,src,adjt = paths_input(cp,source_config,step,kernelrun)
+            print(wf1,wf2,src)
         
-        kernel,corr = paths_output(cp,source_config,step)
+            kernel,corr = paths_output(cp,source_config,step)
             
             
-        #except:
-        #    print('Could not determine correlation for: ')
-        #    print(cp)
-        #    continue
+        except:
+            print('Could not determine correlation for: ')
+            print(cp)
+            continue
             
         if os.path.exists(corr) and not kernelrun:
             continue

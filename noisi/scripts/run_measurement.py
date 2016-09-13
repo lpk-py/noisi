@@ -132,10 +132,16 @@ def measurement(source_config,mtype,step,bandpass,**options):
             info = get_station_info(tr_o.stats)
            
             # Take the measurement
-           
             func = rm.get_measure_func(mtype)
-            msr_o = func(tr_o,**options)
-            msr_s = func(tr_s,**options)
+            try:
+                
+                msr_o = func(tr_o,**options)
+                msr_s = func(tr_s,**options)
+
+            except:
+                print("** Could not take measurement")
+                print(f)
+                continue
             
             # timeseries-like measurements:
             if mtype in ['envelope','windowed_envelope','waveform',\

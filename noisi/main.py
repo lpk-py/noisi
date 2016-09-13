@@ -185,9 +185,10 @@ def kernel(source_model,step):
 @run.command(help='Assemble descent direction from spatial kernels and measurements')
 @click.argument('source_model')
 @click.argument('step')
-@click.option('snr_min',default=0)
+@click.option('--snr_min',default=0.0)
 
 def gradient(source_model,step,snr_min):
+    snr_min = float(snr_min)
     source_model = os.path.join(source_model,'source_config.json')
     assemble_descent_dir(source_model,step,snr_min)
     

@@ -166,7 +166,13 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
         with NoiseSource(src) as nsrc:
 
             correlation = np.zeros(n_corr)
+            
             if kernelrun:
+
+                #if not os.path.exists(adjt):
+                #    print('Adjoint source %s not found, skipping kernel.')
+                #    return()
+
                 kern = np.zeros(wf1.stats['ntraces'])
                 f = read(adjt)[0]
                 f.data = my_centered(f.data,n_corr)
@@ -325,6 +331,11 @@ def run_corr(source_configfile,step,kernelrun=False):
             continue
 
         if os.path.exists(kernel) and kernelrun:
+            continue
+
+        if not os.path.exists(adjt) and kernelrun:
+            print('No adjoint source found for:')
+            print(os.path.basename(adjt))
             continue
 
         else:

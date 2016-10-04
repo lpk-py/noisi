@@ -22,7 +22,7 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=1.2,globe=False,outfile=None,title
         plt.title(title)
    
     plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),shading=shade, vmin=-v,vmax=v, cmap=plt.cm.bwr)
-    m.colorbar(location='bottom')
+    m.colorbar(location='bottom',pad=0.4)
     m.drawcoastlines(linewidth=0.5)
     m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
     m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians

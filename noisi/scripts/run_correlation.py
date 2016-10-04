@@ -15,7 +15,7 @@ from obspy.signal.invsim import cosine_taper
 from noisi import filter
 from scipy.signal import sosfilt
 from noisi.util.windows import my_centered, zero_buddy
-from noisi.util.corr_pairs import define_correlationpairs
+from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs
 
 #ToDo: put in the possibility to run on mixed channel pairs
 def paths_input(cp,source_conf,step,kernelrun):
@@ -280,6 +280,7 @@ def run_corr(source_configfile,step,kernelrun=False):
     
     
     p = define_correlationpairs(source_config['project_path'])
+    p = rem_fin_prs(p,source_config,step,kernelrun)
 
     # for each pair:
     

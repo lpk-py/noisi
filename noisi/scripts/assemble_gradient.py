@@ -6,7 +6,8 @@ from math import isnan
 from noisi.util.plot import plot_grid
 
 
-def assemble_descent_dir(source_model,step,snr_min):
+def assemble_descent_dir(source_model,step,snr_min,save_all=False):
+
 
 
 
@@ -15,10 +16,12 @@ def assemble_descent_dir(source_model,step,snr_min):
 	datadir = os.path.join(source_config['source_path'],'step_' + str(step))
 	msrfile = os.path.join(datadir,"{}.measurement.csv".format(source_config['mtype']))
 
+
+
 # Read in the csv files of measurement.
 
 	data = pd.read_csv(msrfile)
-	print(data)
+
 
 # allocate the kernel array
 	grd = np.load(os.path.join(source_config['project_path'],'sourcegrid.npy'))
@@ -29,10 +32,15 @@ def assemble_descent_dir(source_model,step,snr_min):
 
 
 # loop over stationpairs
+	cnt_success = 0
+	cnt_lowsnr = 0
+	cnt_overlap = 0
+	cnt_unavail = 0
 	n = len(data)
 	for i in range(n):
 
 		if data.at[i,'snr'] < snr_min:
+			cnt_lowsnr += 1
 			continue
 # ToDo: deal with station pairs with several measurements (with different instruments)
 # (At the moment, just all added. Probably fine on this large scale)
@@ -41,10 +49,10 @@ def assemble_descent_dir(source_model,step,snr_min):
 		sta2 = data.at[i,'sta2']
 	
 		if sta1.split('.')[-1][-1] in ['E','N','T','R']:
-			msg = "Cannot handle horizontal components"
+			msg = "Cannot yet handle horizontal components"
 			raise NotImplementedError(msg)
 		if sta2.split('.')[-1][-1] in ['E','N','T','R']:
-			msg = "Cannot handle horizontal components"
+			msg = "Cannot yet handle horizontal components"
 			raise NotImplementedError(msg)
 	
 	
@@ -56,6 +64,7 @@ def assemble_descent_dir(source_model,step,snr_min):
 		if not os.path.exists(kernelfile):
 			print("File does not exist:")
 			print(os.path.basename(kernelfile))
+			cnt_unavail += 1
 			continue
 
 
@@ -71,23 +80,52 @@ def assemble_descent_dir(source_model,step,snr_min):
 		if isnan(data.at[i,'obs']):
 			print("No measurement in dataset for:")
 			print(os.path.basename(kernelfile))
+			cnt_overlap += 1
 			continue
+		
 		else:
 			kernel *= data.at[i,'obs']
+			cnt_success += 1 # yuhu
 
 
 		gradient += kernel
 
 # save
-		kernelfile = os.path.join(datadir,'grad',os.path.basename(kernelfile))
-		np.save(kernelfile, kernel)
+		if save_all:
+			kernelfile = os.path.join(datadir,'grad',os.path.basename(kernelfile))
+			np.save(kernelfile, kernel)
 
 		del kernel
 
-# plot
+
 	
 	kernelfile = os.path.join(datadir,'grad','grad_all.npy')
 	np.save(kernelfile,gradient)
+
+
+# output metadata
+	outfile	= os.path.join(datadir,'grad','grad_info.txt')
+	with open(outfile,'w') as fh:
+
+		# print info
+		fh.write('Analyzed %g station pairs of %g successfully.\n' %(cnt_success,n))
+		fh.write('No data found for %g station pairs.\n' %cnt_unavail)
+		fh.write('No measurement taken for %g station pairs due to short interstation distance.\n' %cnt_overlap) 
+		fh.write('Signal to noise ratio below threshold for %g station pairs.\n' %cnt_lowsnr)
+
+		fh.write('\nParameters:==============================================================\n')
+		fh.write('Project:\n')
+		# append configurations
+		cfg = open(os.path.join(source_config['project_path'],'config.json')).read()
+		fh.write(cfg)
+		fh.write('\n=========================================================================\n')
+		fh.write('Source model:\n')
+		fh.write(json.dumps(source_config))
+		fh.write('\n=========================================================================\n')
+		fh.write('Measurement:\n')
+		cfg = open(os.path.join(source_config['source_path'],'measr_config.json')).read()
+		fh.write(cfg)
+# plot
 	#plotfile = os.path.join(datadir,'step_'+step,'grad_all.png')
 
 	#plot_grid(grd[0],grd[1],gradient,outfile=plotfile)

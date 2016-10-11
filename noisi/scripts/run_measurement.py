@@ -167,15 +167,14 @@ def measurement(source_config,mtype,step,bandpass,**options):
 def run_measurement(source_configfile,measr_configfile,step):
 
 
-    
+    # get parameters    
     source_config=json.load(open(source_configfile))
     measr_config=json.load(open(measr_configfile))
-    
     mtype = measr_config['mtype']
-
     bandpass = measr_config['bandpass']
     
     
+
     # TODo all available misfits --  what parameters do they need (if any.)
     if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
         

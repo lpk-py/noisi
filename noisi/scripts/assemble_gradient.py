@@ -61,6 +61,17 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 		sta2 = "{}.{}..MXZ".format(*sta2.split('.')[0:2])
 	
 		kernelfile = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
+
+
+# Skip if entry is nan: This is most likely due to no measurement taken because station distance too short	
+		if isnan(data.at[i,'obs']):
+			print("No measurement in dataset for:")
+			print(os.path.basename(kernelfile))
+			cnt_overlap += 1
+			continue
+
+# ...unless somehow the kernel went missing (undesirable case!)
+
 		if not os.path.exists(kernelfile):
 			print("File does not exist:")
 			print(os.path.basename(kernelfile))
@@ -76,12 +87,7 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 			continue
 
 
-# multiply kernel and measurement, add to descent dir. Skip if entry is nan	
-		if isnan(data.at[i,'obs']):
-			print("No measurement in dataset for:")
-			print(os.path.basename(kernelfile))
-			cnt_overlap += 1
-			continue
+# multiply kernel and measurement, add to descent dir. 
 		
 		else:
 			kernel *= data.at[i,'obs']

@@ -120,6 +120,11 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 		fh.write('Signal to noise ratio below threshold for %g station pairs.\n' %cnt_lowsnr)
 
 		fh.write('\nParameters:==============================================================\n')
+		fh.write('Source dir: %s \n' %source_model)
+		sh.write('Step: %g' %step)
+		sh.write('Minimum SNR: %g' %snr_min)
+		sh.write('Save all interstation gradients: %s' str(save_all))
+		fh.write('\n=========================================================================\n')
 		fh.write('Project:\n')
 		# append configurations
 		cfg = open(os.path.join(source_config['project_path'],'config.json')).read()

@@ -171,14 +171,14 @@ def adjointsrcs(source_config,mtype,step,**options):
 
 
 
-def run_adjointsrcs(source_configfile,measr_configfile,step):
+def run_adjointsrcs(source_configfile,measr_configfile,step,ignore_network):
     
     source_config=json.load(open(source_configfile))
     measr_config=json.load(open(measr_configfile))
     
     
     mtype = measr_config['mtype']
-    ignore_network = measr_config['ignore_network']
+   
     
     # TODo all available misfits --  what parameters do they need (if any.)
     if mtype in ['ln_energy_ratio','energy_diff']:

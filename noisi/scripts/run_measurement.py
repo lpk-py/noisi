@@ -171,7 +171,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     filename = '{}.measurement.csv'.format(mtype)
     measurements.to_csv(os.path.join(step_dir,filename),index=None)
 
-def run_measurement(source_configfile,measr_configfile,step):
+def run_measurement(source_configfile,measr_configfile,step,ignore_network):
 
 
     # get parameters    
@@ -179,7 +179,7 @@ def run_measurement(source_configfile,measr_configfile,step):
     measr_config=json.load(open(measr_configfile))
     mtype = measr_config['mtype']
     bandpass = measr_config['bandpass']
-    ignore_network = measr_config['ignore_network']
+    
     
 
     # TODo all available misfits --  what parameters do they need (if any.)

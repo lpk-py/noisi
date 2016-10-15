@@ -164,7 +164,7 @@ def correlation(source_model,step):
 # To do: Include a --test option that produces only plots 
 # To do: include a get_parameters_options or something, so that there is no extra step necessary in run_measurement
 @click.argument('step')
-@click.option('--ignore_network',is_flat=True)
+@click.option('--ignore_network',is_flag=True)
 def measurement(source_model,step,ignore_network):
     
     measr_config = os.path.join(source_model,'measr_config.json')

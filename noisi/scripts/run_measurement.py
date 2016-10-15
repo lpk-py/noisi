@@ -32,7 +32,7 @@ def get_station_info(stats):
     
     return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az])
 
-def get_synthetics_filename(obs_filename,synth_location='',
+def get_synthetics_filename(obs_filename,dir,synth_location='',
     fileformat='sac',synth_channel_basename='MX',ignore_network=False):
 
     inf = obs_filename.split('--')
@@ -61,14 +61,37 @@ def get_synthetics_filename(obs_filename,synth_location='',
     cha1 = synth_channel_basename + cha1[-1]
     cha2 = synth_channel_basename + cha2[-1]
 
+
+    sfilename = None
+
     if ignore_network:
-        synth_filename = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
+        synth_filename1 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
         cha1,sta2,synth_location,cha2,fileformat)
+        synth_filename2 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
+        cha1,sta2,synth_location,cha2,fileformat)
+
+        try: 
+            sfilename = glob(os.path.join(dir,synth_filename1))[0]      
+        except IndexError:
+            try:
+                sfilename = glob(os.path.join(dir,synth_filename2))[0]
+            except IndexError:
+                print('No synthetic file found at:')
+                print(synth_filename1,synth_filename2)
+
     else:
-        synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
+        synth_filename1 = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
         cha1,net2,sta2,synth_location,cha2,fileformat)
-    print(synth_filename)
-    return(synth_filename)
+
+        try:
+            sfilename = glob(os.path.join(dir,synth_filename1))[0]  
+        
+        except IndexError:
+            print('No synthetic file found at:')
+            print(synth_filename)
+        
+
+    return sfilename
 
 
 
@@ -117,10 +140,10 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 continue
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),
-                    ignore_network=ignore_network)
-                sfile = glob(os.path.join(synth_dir,synth_filename))[0]
-                print(sfile)
-                tr_s = read(sfile)[0]
+                    synth_dir,ignore_network=ignore_network)
+                #sfile = glob(os.path.join(synth_dir,synth_filename))[0]
+                print(synth_filename)
+                tr_s = read(synth_filename)[0]
             except:
                 print('\nCould not read synthetics: ' + synth_filename)
                 i+=1

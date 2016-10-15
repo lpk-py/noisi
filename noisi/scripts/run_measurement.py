@@ -32,7 +32,8 @@ def get_station_info(stats):
     
     return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az])
 
-def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synth_channel_basename='MX'):
+def get_synthetics_filename(obs_filename,synth_location='',
+    fileformat='sac',synth_channel_basename='MX',ignore_network=False):
 
     inf = obs_filename.split('--')
 
@@ -60,7 +61,11 @@ def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synt
     cha1 = synth_channel_basename + cha1[-1]
     cha2 = synth_channel_basename + cha2[-1]
 
-    synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
+    if ignore_network:
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(net1,sta1,synth_location,
+        cha1,net2,sta2,synth_location,cha2,fileformat)
+    else:
+        synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
         cha1,net2,sta2,synth_location,cha2,fileformat)
     print(synth_filename)
     return(synth_filename)
@@ -69,7 +74,7 @@ def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synt
 
 
 
-def measurement(source_config,mtype,step,bandpass,**options):
+def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     
     """
     Get measurements on noise correlation data and synthetics. 
@@ -111,8 +116,10 @@ def measurement(source_config,mtype,step,bandpass,**options):
                 i+=1
                 continue
             try:
-                synth_filename = get_synthetics_filename(os.path.basename(f))
-                tr_s = read(os.path.join(synth_dir,synth_filename))[0]
+                synth_filename = get_synthetics_filename(os.path.basename(f),
+                    ignore_network=ignore_network)
+                synth_filename = glob(os.path.join(synth_dir,synth_filename)))[0]
+                tr_s = read(synth_filename)[0]
             except:
                 print('\nCould not read synthetics: ' + synth_filename)
                 i+=1
@@ -172,7 +179,7 @@ def run_measurement(source_configfile,measr_configfile,step):
     measr_config=json.load(open(measr_configfile))
     mtype = measr_config['mtype']
     bandpass = measr_config['bandpass']
-    
+    ignore_network = measr_config['ignore_network']
     
 
     # TODo all available misfits --  what parameters do they need (if any.)
@@ -188,5 +195,6 @@ def run_measurement(source_configfile,measr_configfile,step):
         window_params['causal_side']    =    measr_config['window_params_causal']
         window_params['plot']           =    measr_config['window_plot_measurements']
     
-    measurement(source_config,mtype,step,bandpass=bandpass,g_speed=g_speed,window_params=window_params)
+    measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
+        g_speed=g_speed,window_params=window_params)
     

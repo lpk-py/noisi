@@ -9,5 +9,6 @@
 	"window_params_win_overlap":false,
 	"window_params_sep_noise":2.0,
 	"window_params_causal":true,
-	"plot_measurements":false
+	"plot_measurements":false,
+	"ignore_network":false
 }

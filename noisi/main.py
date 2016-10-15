@@ -164,13 +164,14 @@ def correlation(source_model,step):
 # To do: Include a --test option that produces only plots 
 # To do: include a get_parameters_options or something, so that there is no extra step necessary in run_measurement
 @click.argument('step')
-def measurement(source_model,step):
+@click.option('--ignore_network',is_flat=True)
+def measurement(source_model,step,ignore_network):
     
     measr_config = os.path.join(source_model,'measr_config.json')
     source_model = os.path.join(source_model,'source_config.json')
     
-    run_measurement(source_model,measr_config,int(step))
-    run_adjointsrcs(source_model,measr_config,int(step))
+    run_measurement(source_model,measr_config,int(step),ignore_network)
+    run_adjointsrcs(source_model,measr_config,int(step),ignore_network)
 
 
 @run.command(help='Calculate gradients.')

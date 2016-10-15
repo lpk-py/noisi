@@ -52,7 +52,8 @@ def get_essential_sacmeta(sac):
 
     return newsacdict
 
-def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synth_channel_basename='MX'):
+def get_synthetics_filename(obs_filename,ignore_network,synth_location='',
+    fileformat='sac',synth_channel_basename='MX'):
 
     inf = obs_filename.split('--')
 
@@ -80,7 +81,11 @@ def get_synthetics_filename(obs_filename,synth_location='',fileformat='sac',synt
     cha1 = synth_channel_basename + cha1[-1]
     cha2 = synth_channel_basename + cha2[-1]
 
-    synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
+    if ignore_network:
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(net1,sta1,synth_location,
+        cha1,net2,sta2,synth_location,cha2,fileformat)
+    else:
+        synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
         cha1,net2,sta2,synth_location,cha2,fileformat)
     print(synth_filename)
     return(synth_filename)
@@ -124,8 +129,11 @@ def adjointsrcs(source_config,mtype,step,**options):
                 i+=1
                 continue
             try:
-                synth_filename = get_synthetics_filename(os.path.basename(f))
-                tr_s = read(os.path.join(synth_dir,synth_filename))[0]
+                synth_filename = get_synthetics_filename(os.path.basename(f),
+                    ignore_network=ignore_network)
+                synth_filename = glob(os.path.join(synth_dir,synth_filename)))[0]
+                tr_s = read(synth_filename)[0]
+                
             except:
                 print('\nCould not read synthetics: '+os.path.basename(f))
                 i+=1
@@ -170,6 +178,7 @@ def run_adjointsrcs(source_configfile,measr_configfile,step):
     
     
     mtype = measr_config['mtype']
+    ignore_network = measr_config['ignore_network']
     
     # TODo all available misfits --  what parameters do they need (if any.)
     if mtype in ['ln_energy_ratio','energy_diff']:
@@ -183,7 +192,7 @@ def run_adjointsrcs(source_configfile,measr_configfile,step):
         window_params['plot'] = False # To avoid plotting the same thing twice
         # ToDo think of a better solution here.
    
-        adjointsrcs(source_config,mtype,step,g_speed=g_speed,
+        adjointsrcs(source_config,mtype,step,ignore_network,g_speed=g_speed,
         window_params=window_params)
     
         

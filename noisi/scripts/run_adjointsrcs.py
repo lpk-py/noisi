@@ -82,8 +82,8 @@ def get_synthetics_filename(obs_filename,ignore_network,synth_location='',
     cha2 = synth_channel_basename + cha2[-1]
 
     if ignore_network:
-        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(net1,sta1,synth_location,
-        cha1,net2,sta2,synth_location,cha2,fileformat)
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(sta1,synth_location,
+        cha1,sta2,synth_location,cha2,fileformat)
     else:
         synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
         cha1,net2,sta2,synth_location,cha2,fileformat)
@@ -131,8 +131,9 @@ def adjointsrcs(source_config,mtype,step,**options):
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),
                     ignore_network=ignore_network)
-                synth_filename = glob(os.path.join(synth_dir,synth_filename))[0]
-                tr_s = read(synth_filename)[0]
+                sname = glob(os.path.join(synth_dir,synth_filename))[0]
+                print(sname)
+                tr_s = read(sname)[0]
                 
             except:
                 print('\nCould not read synthetics: '+os.path.basename(f))

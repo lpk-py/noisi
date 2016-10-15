@@ -62,8 +62,8 @@ def get_synthetics_filename(obs_filename,synth_location='',
     cha2 = synth_channel_basename + cha2[-1]
 
     if ignore_network:
-        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(net1,sta1,synth_location,
-        cha1,net2,sta2,synth_location,cha2,fileformat)
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(sta1,synth_location,
+        cha1,sta2,synth_location,cha2,fileformat)
     else:
         synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
         cha1,net2,sta2,synth_location,cha2,fileformat)
@@ -118,8 +118,9 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),
                     ignore_network=ignore_network)
-                synth_filename = glob(os.path.join(synth_dir,synth_filename))[0]
-                tr_s = read(synth_filename)[0]
+                sfile = glob(os.path.join(synth_dir,synth_filename))[0]
+                print(sfile)
+                tr_s = read(sfile)[0]
             except:
                 print('\nCould not read synthetics: ' + synth_filename)
                 i+=1

@@ -62,7 +62,7 @@ def get_synthetics_filename(obs_filename,synth_location='',
     cha2 = synth_channel_basename + cha2[-1]
 
     if ignore_network:
-        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(sta1,synth_location,
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
         cha1,sta2,synth_location,cha2,fileformat)
     else:
         synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,

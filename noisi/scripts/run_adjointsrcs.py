@@ -82,7 +82,7 @@ def get_synthetics_filename(obs_filename,ignore_network,synth_location='',
     cha2 = synth_channel_basename + cha2[-1]
 
     if ignore_network:
-        synth_filename = '*.{}.{}.{}--*.{}.{}.{}'.format(sta1,synth_location,
+        synth_filename = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
         cha1,sta2,synth_location,cha2,fileformat)
     else:
         synth_filename = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
@@ -159,7 +159,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                 adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
                 adj_src.stats.sac = tr_s.stats.sac.copy()
                 # Save the adjoint source
-                file_adj_src = os.path.join(adj_dir,synth_filename)
+                file_adj_src = os.path.join(adj_dir,sname)
                 adj_src.write(file_adj_src,format='SAC')
             except:
                 pass

@@ -91,7 +91,7 @@ def get_synthetics_filename(obs_filename,ignore_network,synth_location='',
     return(synth_filename)
 
 
-def adjointsrcs(source_config,mtype,step,**options):
+def adjointsrcs(source_config,mtype,step,ignore_network,**options):
     
     """
     Get 'adjoint source' from noise correlation data and synthetics. 

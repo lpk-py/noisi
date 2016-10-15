@@ -138,6 +138,8 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
                     ignore_network=ignore_network)
+                if synth_filename is None:
+                    continue
                 #sname = glob(os.path.join(synth_dir,synth_filename))[0]
                 print(synth_filename)
                 tr_s = read(synth_filename)[0]
@@ -151,9 +153,8 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
             tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
 
             # Check sampling rates. 
-            if round(tr_s.stats.sampling_rate,4) != round(tr_o.stats.sampling_rate,6):
-                print(tr_s)
-                print(tr_o)
+            if round(tr_s.stats.sampling_rate,6) != round(tr_o.stats.sampling_rate,6):
+                print("Sampling Rates (Hz)")
                 print(tr_s.stats.sampling_rate)
                 print(tr_o.stats.sampling_rate)
                 msg = 'Sampling rates of data and synthetics must match.'

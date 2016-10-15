@@ -67,8 +67,8 @@ def get_synthetics_filename(obs_filename,dir,synth_location='',
     if ignore_network:
         synth_filename1 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
         cha1,sta2,synth_location,cha2,fileformat)
-        synth_filename2 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
-        cha1,sta2,synth_location,cha2,fileformat)
+        synth_filename2 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta2,synth_location,
+        cha2,sta1,synth_location,cha1,fileformat)
 
         try: 
             sfilename = glob(os.path.join(dir,synth_filename1))[0]      

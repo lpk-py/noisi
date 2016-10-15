@@ -151,7 +151,11 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
             tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
 
             # Check sampling rates. 
-            if round(tr_s.stats.sampling_rate,6) != round(tr_o.stats.sampling_rate,6):
+            if round(tr_s.stats.sampling_rate,4) != round(tr_o.stats.sampling_rate,6):
+                print(tr_s)
+                print(tr_o)
+                print(tr_s.stats.sampling_rate)
+                print(tr_o.stats.sampling_rate)
                 msg = 'Sampling rates of data and synthetics must match.'
                 raise ValueError(msg)
 

@@ -118,7 +118,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),
                     ignore_network=ignore_network)
-                synth_filename = glob(os.path.join(synth_dir,synth_filename)))[0]
+                synth_filename = glob(os.path.join(synth_dir,synth_filename))[0]
                 tr_s = read(synth_filename)[0]
             except:
                 print('\nCould not read synthetics: ' + synth_filename)

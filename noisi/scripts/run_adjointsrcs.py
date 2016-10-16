@@ -171,7 +171,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
             adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
             adj_src.stats.sac = tr_s.stats.sac.copy()
             # Save the adjoint source
-            file_adj_src = os.path.join(adj_dir,synth_filename)
+            file_adj_src = os.path.join(adj_dir,os.path.basename(synth_filename))
             adj_src.write(file_adj_src,format='SAC')
             
            

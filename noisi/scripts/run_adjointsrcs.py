@@ -205,7 +205,7 @@ def run_adjointsrcs(source_configfile,measr_configfile,step,ignore_network):
         window_params['plot'] = False # To avoid plotting the same thing twice
         # ToDo think of a better solution here.
    
-        adjointsrcs(source_config,mtype,step,ignore_network,g_speed=g_speed,
+        adjointsrcs(source_config,mtype,step,ignore_network=ignore_network,g_speed=g_speed,
         window_params=window_params)
     
         

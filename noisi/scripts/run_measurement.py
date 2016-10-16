@@ -76,8 +76,8 @@ def get_synthetics_filename(obs_filename,dir,synth_location='',
             try:
                 sfilename = glob(os.path.join(dir,synth_filename2))[0]
             except IndexError:
-                print('No synthetic file found at:')
-                print(synth_filename1,synth_filename2)
+                print('No synthetic file found for data:')
+                print(obs_filename)
 
     else:
         synth_filename1 = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
@@ -87,8 +87,8 @@ def get_synthetics_filename(obs_filename,dir,synth_location='',
             sfilename = glob(os.path.join(dir,synth_filename1))[0]  
         
         except IndexError:
-            print('No synthetic file found at:')
-            print(synth_filename)
+            print('No synthetic file found for data:')
+            print(obs_filename)
         
 
     return sfilename

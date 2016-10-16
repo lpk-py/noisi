@@ -27,8 +27,8 @@ def paths_input(cp,source_conf,step,kernelrun):
     # Wavefield files
     conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     channel = source_conf['channel']
-    sta1 = "{}.{}..{}".format(*(inf1[0:2]+[channel]))
-    sta2 = "{}.{}..{}".format(*(inf2[0:2]+[channel]))
+    sta1 = "*.{}..{}".format(*(inf1[1]+[channel]))
+    sta2 = "*.{}..{}".format(*(inf2[1]+[channel]))
     
     if source_conf['preprocess_do']:
         dir = os.path.join(source_conf['source_path'],'wavefield_processed')
@@ -57,9 +57,23 @@ def paths_input(cp,source_conf,step,kernelrun):
                      'starting_model.h5')
 
     # Adjoint source
-    adjt = os.path.join(source_conf['source_path'],
+    
+
+    try:
+        adjt = os.path.join(source_conf['source_path'],
                      'step_'+str(step),
                      'adjt',"{}--{}.sac".format(sta1,sta2))
+        adjt = glob(adjt)[0]
+    except IndexError:
+        try:
+            adjt = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.sac".format(sta2,sta1))
+            adjt = glob(adjt)[0]
+        except:
+            # ToDo: this is too horrible, please find another solution.
+            adjt = '-'
+
     
     return(wf1,wf2,nsrc,adjt)
     
@@ -339,18 +353,18 @@ def run_corr(source_configfile,step,kernelrun=False):
             continue
 
         else:
-            if int(step) == 0:
-                if source_config['ktype'] == 'td':
+            #if int(step) == 0:
+               # if source_config['ktype'] == 'td':
 
-                    print('Time domain preliminary kernel...')
-                    g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
+                    #print('Time domain preliminary kernel...')
+            g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
 
-                elif source_config['ktype'] == 'fd':
-                    print('Frequency domain preliminary kernel...')
-                    g1g2_corr_fd(wf1,wf2,c,c_int,src,source_config)
-            else:
-                corr(wf1,wf2,c,c_int,src,source_config,kernelrun=kernelrun)
-        
+            #     elif source_config['ktype'] == 'fd':
+            #         print('Frequency domain preliminary kernel...')
+            #         g1g2_corr_fd(wf1,wf2,c,c_int,src,source_config)
+            # #else:
+            #     corr(wf1,wf2,c,c_int,src,source_config,kernelrun=kernelrun)
+        #
         #corr(c,src,c_int)
                 
             

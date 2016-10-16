@@ -14,7 +14,7 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
     data = wn.my_centered(corr_s.data,corr_o.stats.npts)
 
 
-    if window[2]:
+    if window[2] == True:
         sig_c = corr_s.data * win
         sig_a = corr_s.data * win[::-1]
         E_plus = np.trapz(np.power(sig_c,2))*corr_s.stats.delta

@@ -108,7 +108,7 @@ def get_window(stats,g_speed,params):
         return win_signal, win_noise, scs
 
     else:
-        return [],[],scs
+        return np.zeros(n),np.zeros(n),scs
 
 
 

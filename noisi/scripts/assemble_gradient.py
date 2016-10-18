@@ -57,10 +57,24 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 	
 	
 # ToDo !!! Replace this by a decent formulation, where the channel is properly set !!! No error for E, R, T, N
-		sta1 = "{}.{}..MXZ".format(*sta1.split('.')[0:2])
-		sta2 = "{}.{}..MXZ".format(*sta2.split('.')[0:2])
+		sta1 = "*.{}..MXZ".format(*sta1.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
+		sta2 = "*.{}..MXZ".format(*sta2.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
 	
-		kernelfile = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
+		kernelfile1 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
+		kernelfile2 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta2,sta1))
+		# Same problem with different network codes.
+		# Due to station pairs being in alphabetic order of network.station.loc.cha, different network
+		# codes also lead to different ordering.
+		try:
+			kernelfile = glob(kernelfile1)[0]
+		except IndexError:
+			try: 
+				kernelfile = glob(kernelfile2)[0]
+			except IndexError:
+				kernelfile = kernelfile1 # this file does not actually exist, but there might be a good reason.
+				# Check that first, and then complain.
+
+
 
 
 # Skip if entry is nan: This is most likely due to no measurement taken because station distance too short	

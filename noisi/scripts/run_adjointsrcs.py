@@ -124,7 +124,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
         msg = 'No input found!'
         raise ValueError(msg)
     
-    i = 0
+    #i = 0
     with click.progressbar(files,label='Determining adjoint sources...') as bar:
         
         for f in bar:
@@ -133,7 +133,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                 tr_o = read(f)[0]
             except:
                 print('\nCould not read data: '+os.path.basename(f))
-                i+=1
+                #i+=1
                 continue
             try:
                 synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
@@ -146,7 +146,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                 
             except:
                 print('\nCould not read synthetics: '+os.path.basename(f))
-                i+=1
+                #i+=1
                 continue
 
             # Add essential metadata
@@ -166,8 +166,14 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
            
             # Get the adjoint source
             func = af.get_adj_func(mtype)
+
+            
            
-            adj_src = Trace(data=func(tr_o,tr_s,**options))
+            adj_src, success = Trace(data=func(tr_o,tr_s,**options))
+
+            if not success:
+                continue
+
             adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
             adj_src.stats.sac = tr_s.stats.sac.copy()
             # Save the adjoint source
@@ -177,8 +183,8 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
            
               
             # step index
-            i+=1
-    
+            #i+=1
+    #
 
 
 

@@ -7,6 +7,9 @@ from noisi.util import windows as wn
 
 
 def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
+
+    success = False
+
     window = wn.get_window(corr_o.stats,g_speed,window_params)
     win = window[0]
     #msr_o = rm.log_en_ratio(corr_o,g_speed,window_params)
@@ -23,15 +26,16 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
         u_minus = np.multiply(sig_a,win[::-1])
         #adjt_src = 2./pi * (msr_s-msr_o) * (u_plus / E_plus - u_minus / E_minus)
         adjt_src = 2./pi * (u_plus / E_plus - u_minus / E_minus)
+        success = True
     else:
         adjt_src = win-win+np.nan
-    return adjt_src
+    return adjt_src, success
     
 def energy(corr_o,corr_s,g_speed,window_params):
     
     #msr_o = rm.energy(corr_o,g_speed,window_params)
     #msr_s = rm.energy(corr_s,g_speed,window_params)
-    
+    success = False
     
     window = wn.get_window(corr_o.stats,g_speed,window_params)
     
@@ -44,10 +48,11 @@ def energy(corr_o,corr_s,g_speed,window_params):
         u = np.multiply(win,corr_s.data)
         #adjt_src = 2./(msr_s-msr_o) * u
         adjt_src = u
+        success = True
     else:
         adjt_src = win-win+np.nan
     
-    return adjt_src
+    return adjt_src, success
     
     
     

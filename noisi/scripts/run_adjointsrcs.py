@@ -166,13 +166,13 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
            
             # Get the adjoint source
             func = af.get_adj_func(mtype)
-
-            
-           
-            adj_src, success = Trace(data=func(tr_o,tr_s,**options))
-
+            data, success = func(tr_o,tr_s,**options)
             if not success:
                 continue
+           
+            adj_src = Trace(data=data)
+
+            
 
             adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
             adj_src.stats.sac = tr_s.stats.sac.copy()

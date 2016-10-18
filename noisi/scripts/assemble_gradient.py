@@ -58,8 +58,8 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 	
 	
 # ToDo !!! Replace this by a decent formulation, where the channel is properly set !!! No error for E, R, T, N
-		sta1 = "*.{}..MXZ".format(*sta1.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
-		sta2 = "*.{}..MXZ".format(*sta2.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
+		sta1 = "*.{}..MXZ".format(sta1.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
+		sta2 = "*.{}..MXZ".format(sta2.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
 	
 		kernelfile1 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
 		kernelfile2 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta2,sta1))

@@ -3,7 +3,7 @@ import h5py
 
 from scipy.stats import linregress
 import os
-
+from noisi.util.plot import plot_grid
 
 
 class NoiseSource(object):
@@ -16,11 +16,11 @@ class NoiseSource(object):
     """
     
     
-    def __init__(self,model,file=None):
+    def __init__(self,model):
             
         # Model is an hdf5 file which contains the basis and weights of the source model!
-        self.file=file
-
+        
+       
         try:
             self.model = h5py.File(model,'r+')
             self.src_loc = self.model['coordinates']
@@ -38,14 +38,14 @@ class NoiseSource(object):
         except IOError:
             msg = 'Unable to open model file '+model
             raise IOError(msg)
+
+
         
     def __enter__(self):
         return self
     
     def __exit__(self,type,value,traceback):
-        if self.file is not None:
-            self.file.close()
-            print(self.file)
+        
         if self.model is not None:
             self.model.close()
             #ToDo: Check what parameters/data should be written before file closed
@@ -64,7 +64,10 @@ class NoiseSource(object):
         return self.source_distribution[iloc] * spect
     
     
-    
+    def plot(self):
+        # plot the distribution
+        plot_grid(self.src_loc[0],self.src_loc[1],self.distr_basis[0])
+
     
     
     

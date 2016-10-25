@@ -174,13 +174,23 @@ def measurement(source_model,step,ignore_network):
     run_adjointsrcs(source_model,measr_config,int(step),ignore_network)
 
 
-@run.command(help='Calculate gradients.')
+@run.command(help='Calculate preliminary kernels.')
 @click.argument('source_model')
 @click.argument('step')
 
 def kernel(source_model,step):
     source_model = os.path.join(source_model,'source_config.json')
     run_corr(source_model,step,kernelrun=True)
+
+
+@run.command(help='Calculate few correlations for step length test.')
+@click.argument('source_model')
+@click.argument('step')
+def step_test(source_model,step):
+    source_model = os.path.join(source_model,'source_config.json')
+    run_corr(source_model,step,steplengthrun=True)
+
+
 
 
 @run.command(help='Assemble descent direction from spatial kernels and measurements')

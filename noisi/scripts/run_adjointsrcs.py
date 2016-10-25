@@ -9,7 +9,7 @@ from obspy import read, Trace
 from obspy.geodetics import gps2dist_azimuth
 
 from noisi.scripts import adjnt_functs as af
-from noisi.scripts.run_measurement import get_synthetics_filename
+from noisi.util.corr_pairs import get_synthetics_filename
 from noisi.util.windows import get_window, my_centered, snratio
 
 

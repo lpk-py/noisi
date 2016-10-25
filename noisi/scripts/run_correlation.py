@@ -15,7 +15,7 @@ from obspy.signal.invsim import cosine_taper
 from noisi import filter
 from scipy.signal import sosfilt
 from noisi.util.windows import my_centered, zero_buddy
-from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs
+from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs, rem_no_obs
 
 #ToDo: put in the possibility to run on mixed channel pairs
 def paths_input(cp,source_conf,step,kernelrun):
@@ -284,7 +284,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
 
 
 
-def run_corr(source_configfile,step,kernelrun=False):
+def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False,obs_only=True):
 
     step = int(step)
 
@@ -293,8 +293,19 @@ def run_corr(source_configfile,step,kernelrun=False):
     source_config=json.load(open(source_configfile))
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
-    
     p = define_correlationpairs(source_config['project_path'])
+    
+    # Remove pairs for which no observation is available
+    if obs_only:
+        directory = os.path.join(source_config['source_path'],'observed_correlations')
+        p = rem_no_obs(p,source_config,directory=directory)
+    if steplengthrun:
+        directory = os.path.join(source_config['source_path'],
+            'step_'+str(step),'obs_slt')
+        p = rem_no_obs(p,source_config,directory=directory)
+        
+
+    # Remove pairs that have already been calculated
     p = rem_fin_prs(p,source_config,step,kernelrun)
 
     # for each pair:

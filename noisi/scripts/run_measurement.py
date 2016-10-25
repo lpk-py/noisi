@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from noisi.scripts import measurements as rm
 #from noisi.scripts import adjnt_functs as af
 from noisi.util.windows import get_window, my_centered, snratio
+from noisi.util.corr_pairs import get_synthetics_filename
 # Get and return measurement as a table or something.
 
 
@@ -27,71 +28,12 @@ def get_station_info(stats):
     lat2 = stats.sac.evla
     lon2 = stats.sac.evlo
     dist = stats.sac.dist
-    az = gps2dist_azimuth(lat1,lon1,lat2,lon2)[2]
+    az,baz = gps2dist_azimuth(lat1,lon1,lat2,lon2)[1:]
     
     
-    return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az])
-
-def get_synthetics_filename(obs_filename,dir,synth_location='',
-    fileformat='sac',synth_channel_basename='MX',ignore_network=False):
-
-    inf = obs_filename.split('--')
-
-    if len(inf) == 1:
-        # old station name format
-        inf = obs_filename.split('.')
-        net1 = inf[0]
-        sta1 = inf[1]
-        cha1 = inf[3]
-        net2 = inf[4]
-        sta2 = inf[5]
-        cha2 = inf[7]
-    elif len(inf) == 2:
-        # new station name format
-        inf1 = inf[0].split('.')
-        inf2 = inf[1].split('.')
-        net1 = inf1[0]
-        sta1 = inf1[1]
-        net2 = inf2[0]
-        sta2 = inf2[1]
-        cha1 = inf1[3]
-        cha2 = inf2[3]
+    return([sta1,sta2,lat1,lon1,lat2,lon2,dist,az,baz])
 
 
-    cha1 = synth_channel_basename + cha1[-1]
-    cha2 = synth_channel_basename + cha2[-1]
-
-
-    sfilename = None
-
-    if ignore_network:
-        synth_filename1 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta1,synth_location,
-        cha1,sta2,synth_location,cha2,fileformat)
-        synth_filename2 = '*.{}.{}.{}--*.{}.{}.{}.{}'.format(sta2,synth_location,
-        cha2,sta1,synth_location,cha1,fileformat)
-
-        try: 
-            sfilename = glob(os.path.join(dir,synth_filename1))[0]      
-        except IndexError:
-            try:
-                sfilename = glob(os.path.join(dir,synth_filename2))[0]
-            except IndexError:
-                print('No synthetic file found for data:')
-                print(obs_filename)
-
-    else:
-        synth_filename1 = '{}.{}.{}.{}--{}.{}.{}.{}.{}'.format(net1,sta1,synth_location,
-        cha1,net2,sta2,synth_location,cha2,fileformat)
-
-        try:
-            sfilename = glob(os.path.join(dir,synth_filename1))[0]  
-        
-        except IndexError:
-            print('No synthetic file found for data:')
-            print(obs_filename)
-        
-
-    return sfilename
 
 
 
@@ -117,10 +59,12 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     synth_dir = os.path.join(step_dir,'corr')
     
     
-    columns = ['sta1','sta2','lat1','lon1','lat2','lon2','dist','az',
-    'obs','l2_norm','snr']
+    columns = ['sta1','sta2','lat1','lon1','lat2','lon2','dist','az','baz',
+    'syn','obs','l2_norm','snr','snr_a']
     measurements = pd.DataFrame(columns=columns)
     
+    _options_ac = options.copy()
+    _options_ac['causal_side'] = not _options_ac['causal_side']
     
     
     if files == []:
@@ -182,13 +126,16 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 l2_so = np.trapz(0.5*(msr_s-msr_o)**2) * tr_o.stats.delta
                 msr = np.nan
                 snr = np.nan
+                snr_a = np.nan
             # single value measurements:
             else:
                 l2_so = 0.5*(msr_s-msr_o)**2
                 msr = msr_o
                 snr = snratio(tr_o,**options)
+                snr_a = snratio(tr_o,_options_ac)
+
                  
-            info.extend([msr,l2_so,snr])
+            info.extend([msr,msr_s,l2_so,snr,snr_a])
             measurements.loc[i] = info
 
             # step index

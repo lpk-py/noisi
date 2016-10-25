@@ -40,7 +40,7 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 	n = len(data)
 	for i in range(n):
 
-		if data.at[i,'snr'] < snr_min:
+		if data.at[i,'snr'] < snr_min and data.at[i,'snr_a'] < snr_min:
 			cnt_lowsnr += 1
 			continue
 # ToDo: deal with station pairs with several measurements (with different instruments)

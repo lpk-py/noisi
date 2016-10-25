@@ -64,7 +64,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     measurements = pd.DataFrame(columns=columns)
     
     _options_ac = options.copy()
-    _options_ac['causal_side'] = not _options_ac['causal_side']
+   
+    _options_ac['window_params']['causal_side'] = not _options_ac['window_params']['causal_side']
     
     
     if files == []:
@@ -132,7 +133,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 l2_so = 0.5*(msr_s-msr_o)**2
                 msr = msr_o
                 snr = snratio(tr_o,**options)
-                snr_a = snratio(tr_o,_options_ac)
+                snr_a = snratio(tr_o,**_options_ac)
 
                  
             info.extend([msr,msr_s,l2_so,snr,snr_a])

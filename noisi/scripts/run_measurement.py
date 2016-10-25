@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from math import log, pi
 import click
+import copy
 import json
 from scipy.signal import hilbert
 from glob import glob
@@ -63,9 +64,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     'syn','obs','l2_norm','snr','snr_a']
     measurements = pd.DataFrame(columns=columns)
     
-    _options_ac = options.copy()
-   
-    _options_ac['window_params']['causal_side'] = not _options_ac['window_params']['causal_side']
+    _options_ac = copy.deepcopy(options)
+    _options_ac['window_params']['causal_side'] = not(options['window_params']['causal_side'])
     
     
     if files == []:
@@ -89,7 +89,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 if synth_filename is None:
                     continue
                 #sfile = glob(os.path.join(synth_dir,synth_filename))[0]
-                print(synth_filename)
+                #print(synth_filename)
                 tr_s = read(synth_filename)[0]
             except:
                 print('\nCould not read synthetics: ' + synth_filename)
@@ -168,7 +168,7 @@ def run_measurement(source_configfile,measr_configfile,step,ignore_network):
         window_params['wtype']          =    measr_config['window_params_wtype']
         window_params['causal_side']    =    measr_config['window_params_causal']
         window_params['plot']           =    measr_config['window_plot_measurements']
-    
+   
     measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
         g_speed=g_speed,window_params=window_params)
     

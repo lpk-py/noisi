@@ -64,9 +64,9 @@ class NoiseSource(object):
         return self.source_distribution[iloc] * spect
     
     
-    def plot(self):
+    def plot(self,**options):
         # plot the distribution
-        plot_grid(self.src_loc[0],self.src_loc[1],self.distr_basis[0])
+        plot_grid(self.src_loc[0],self.src_loc[1],self.distr_basis[0],**options)
 
     
     

@@ -5,7 +5,8 @@ from matplotlib.mlab import griddata
 import matplotlib.tri as tri    
 import numpy as np
     
-def plot_grid(map_x,map_y,map_z,stations=[],v=1.0,globe=False,outfile=None,title=None,shade='flat'):
+def plot_grid(map_x,map_y,map_z,stations=[],v=1.0,globe=False,outfile=None,title=None,shade='flat',
+    sequential=False,v_min=None):
     
     m = Basemap(rsphere=6378137,resolution='c',projection='cyl',lat_0=0.,           lon_0=0.,llcrnrlat=np.min(map_y),urcrnrlat=np.max(map_y),
     llcrnrlon=np.min(map_x),urcrnrlon=np.max(map_x))
@@ -21,8 +22,15 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=1.0,globe=False,outfile=None,title
     if title is not None:
         plt.title(title)
 
+    if sequential:
+        cm = plt.cm.magma
+        if v_min == None:
+            v_min = 0.
+    else:
+        cm = plt.cm.bwr
+        v_min =-v
    
-    plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),shading=shade, vmin=-v,vmax=v,cmap=plt.cm.bwr)
+    plt.tripcolor(triangles, map_z/np.max(np.abs(map_z)),shading=shade, vmin=v_min,vmax=v,cmap=cm)
     m.colorbar(location='bottom',pad=0.4)
     m.drawcoastlines(linewidth=0.5)
     m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels

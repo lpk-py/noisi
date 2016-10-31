@@ -61,7 +61,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     
     
     columns = ['sta1','sta2','lat1','lon1','lat2','lon2','dist','az','baz',
-    'syn','obs','l2_norm','snr','snr_a']
+    'syn','obs','l2_norm','snr','snr_a','nstack']
     measurements = pd.DataFrame(columns=columns)
     
     _options_ac = copy.deepcopy(options)
@@ -136,7 +136,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 snr_a = snratio(tr_o,**_options_ac)
 
                  
-            info.extend([msr_s,msr,l2_so,snr,snr_a])
+            info.extend([msr_s,msr,l2_so,snr,snr_a,tr_o.stats.sac.user0])
             measurements.loc[i] = info
 
             # step index

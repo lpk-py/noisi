@@ -14,6 +14,7 @@ from noisi.my_classes.noisesource import NoiseSource
 source_model = sys.argv[1]
 oldstep = sys.argv[2]
 min_snr = 0.0
+min_stck = 640.
 nr_msr = 1
 step_length = 10
 perc_step_length = None
@@ -78,6 +79,7 @@ data = pd.read_csv(msrfile)
 # Get a set of n randomly chosen station pairs. Criteria: minimum SNR, 
 # ---> prelim_stations.txt
 data_accept = data[(data.snr > min_snr)]
+data_accept = data_accept[(data_accept.nstack > min_stck)]
 data_select = data_accept.sample(n=nr_msr)
 
 

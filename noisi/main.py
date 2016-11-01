@@ -197,11 +197,12 @@ def step_test(source_model,step):
 @click.argument('source_model')
 @click.argument('step')
 @click.option('--snr_min',default=0.0)
+@click.option('--n_min',default=0)
 
-def gradient(source_model,step,snr_min):
+def gradient(source_model,step,snr_min,n_min):
     snr_min = float(snr_min)
     source_model = os.path.join(source_model,'source_config.json')
-    assemble_descent_dir(source_model,step,snr_min)
+    assemble_descent_dir(source_model,step,snr_min,n_min)
     
     
 #import config.configure as conf

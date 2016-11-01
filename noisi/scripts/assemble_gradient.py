@@ -7,7 +7,7 @@ from math import isnan
 from noisi.util.plot import plot_grid
 
 
-def assemble_descent_dir(source_model,step,snr_min,save_all=False):
+def assemble_descent_dir(source_model,step,snr_min,n_min,save_all=False):
 
 
 
@@ -35,6 +35,7 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 # loop over stationpairs
 	cnt_success = 0
 	cnt_lowsnr = 0
+	cnt_lown = 0
 	cnt_overlap = 0
 	cnt_unavail = 0
 	n = len(data)
@@ -43,6 +44,12 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 		if data.at[i,'snr'] < snr_min and data.at[i,'snr_a'] < snr_min:
 			cnt_lowsnr += 1
 			continue
+
+		if data.at[i,'nstack'] < n_min:
+			cnt_lown += 1
+			continue
+
+
 # ToDo: deal with station pairs with several measurements (with different instruments)
 # (At the moment, just all added. Probably fine on this large scale)
 # find kernel file
@@ -133,11 +140,12 @@ def assemble_descent_dir(source_model,step,snr_min,save_all=False):
 		fh.write('No data found for %g station pairs.\n' %cnt_unavail)
 		fh.write('No measurement taken for %g station pairs due to short interstation distance.\n' %cnt_overlap) 
 		fh.write('Signal to noise ratio below threshold for %g station pairs.\n' %cnt_lowsnr)
-
+		fh.write('Number of staacked windows below threshold for %g station pairs.\n' %cnt_lown)
 		fh.write('\nParameters:==============================================================\n')
 		fh.write('Source dir: %s \n' %source_model)
 		fh.write('Step: %g' %step)
 		fh.write('Minimum SNR: %g' %snr_min)
+		fh.write('Minimum stack length: %g' %int(n_min))
 		fh.write('Save all interstation gradients: %s' %str(save_all))
 		fh.write('\n=========================================================================\n')
 		fh.write('Project:\n')

@@ -18,7 +18,11 @@ min_stck = 640.
 nr_msr = 20
 step_length = 10
 perc_step_length = None
-test_steplength = True
+# Only if the following is set to True, a small subset (nr_msr) 
+# of data will be selected and copied and their misfit evaluated
+# for a step length test. Otherwise, only the update of the source model
+# is performed. 
+prepare_test_steplength = True
 ####################################
 
 
@@ -73,47 +77,52 @@ source_config=json.load(open(source_model))
 datadir = os.path.join(source_config['source_path'],'step_' + str(oldstep))
 msrfile = os.path.join(datadir,"{}.measurement.csv".format(source_config['mtype']))
 
-
-# Read in the csv files of measurement.
-data = pd.read_csv(msrfile)
-# Get a set of n randomly chosen station pairs. Criteria: minimum SNR, 
-# ---> prelim_stations.txt
-data_accept = data[(data.snr > min_snr)]
-data_accept = data_accept[(data_accept.nstack > min_stck)]
-data_select = data_accept.sample(n=nr_msr)
-
-
 # Initialize the new step directory
 newstep = int(oldstep) + 1
-
 newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
-os.mkdir(newdir)
-os.mkdir(os.path.join(newdir,'obs_slt'))
-os.mkdir(os.path.join(newdir,'corr'))
-os.mkdir(os.path.join(newdir,'adjt'))
-os.mkdir(os.path.join(newdir,'grad'))
-os.mkdir(os.path.join(newdir,'kern'))
+
+if not os.path.exist(newdir):
+	newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
+	os.mkdir(newdir)
+	os.mkdir(os.path.join(newdir,'obs_slt'))
+	os.mkdir(os.path.join(newdir,'corr'))
+	os.mkdir(os.path.join(newdir,'adjt'))
+	os.mkdir(os.path.join(newdir,'grad'))
+	os.mkdir(os.path.join(newdir,'kern'))
 
 os.system('cp {} {}'.format(os.path.join(datadir,'base_model.h5'),newdir))
 os.system('cp {} {}'.format(os.path.join(datadir,'starting_model.h5'),newdir))
 
 
-stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
-stafile.write("Station pairs to be used for step lenght test:\n")
 
-inffile = open(os.path.join(newdir,'step_length_test_info.txt'),'w')
-inffile.write('Parameters:\n')
-inffile.write('source_model: %s\n' %source_model)
-inffile.write('old step: %s\n' %oldstep)
-inffile.write('min_snr %g\n' %min_snr)
-inffile.write('min_stck %g\n' %min_stck)
-inffile.write('step_length %g\n' %step_length)
-inffile.write('-'*40)
-inffile.write("\nStation pairs to be used for step lenght test:\n")
 
-cum_misf = 0.0
-# Take care of the test set for the step length test
-if test_steplength:
+if prepare_test_steplength:
+
+	# Read in the csv files of measurement.
+	data = pd.read_csv(msrfile)
+	# Get a set of n randomly chosen station pairs. Criteria: minimum SNR, 
+	# ---> prelim_stations.txt
+	data_accept = data[(data.snr > min_snr)]
+	data_accept = data_accept[(data_accept.nstack > min_stck)]
+
+	data_select = data_accept.sample(n=nr_msr)
+
+	stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
+	stafile.write("Station pairs to be used for step lenght test:\n")
+
+	inffile = open(os.path.join(newdir,'step_length_test_info.txt'),'w')
+	inffile.write('Parameters:\n')
+	inffile.write('source_model: %s\n' %source_model)
+	inffile.write('old step: %s\n' %oldstep)
+	inffile.write('min_snr %g\n' %min_snr)
+	inffile.write('min_stck %g\n' %min_stck)
+	inffile.write('step_length %g\n' %step_length)
+	inffile.write('-'*40)
+	inffile.write("\nStation pairs to be used for step lenght test:\n")
+
+	cum_misf = 0.0
+	# Take care of the test set for the step length test
+	
 	for i in range(nr_msr):
 
 		sta1 = data.at[i,'sta1']
@@ -148,14 +157,15 @@ if test_steplength:
 				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
 			
 
+
+	inffile.write('-'*40)
+	inffile.write('\nCumulative misfit: %g\n' %cum_misf)
+	inffile.write('-'*40)
+	inffile.close()
+	stafile.close()
 else: 
 	pass
 
-inffile.write('-'*40)
-inffile.write('\nCumulative misfit: %g\n' %cum_misf)
-inffile.write('-'*40)
-inffile.close()
-stafile.close()
 # Set up a prelim_sourcemodel.h5: 
 # Contains starting model + step length * (-grad) for steepest descent
 # This would be the point to project to some lovely basis functions..

@@ -15,7 +15,7 @@ source_model = sys.argv[1]
 oldstep = sys.argv[2]
 min_snr = 0.0
 min_stck = 640.
-nr_msr = 1
+nr_msr = 20
 step_length = 10
 perc_step_length = None
 test_steplength = True
@@ -101,6 +101,17 @@ os.system('cp {} {}'.format(os.path.join(datadir,'starting_model.h5'),newdir))
 stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
 stafile.write("Station pairs to be used for step lenght test:\n")
 
+inffile = open(os.path.join(newdir,'step_length_test_info.txt'),'w')
+inffile.write('Parameters:\n')
+inffile.write('source_model: %s\n' %source_model)
+inffile.write('old step: %s\n' %oldstep)
+inffile.write('min_snr %g\n' %min_snr)
+inffile.write('min_stck %g\n' %min_stck)
+inffile.write('step_length %g\n' %step_length)
+inffile.write('-'*40)
+inffile.write("\nStation pairs to be used for step lenght test:\n")
+
+cum_misf = 0.0
 # Take care of the test set for the step length test
 if test_steplength:
 	for i in range(nr_msr):
@@ -112,6 +123,9 @@ if test_steplength:
 		lat2 = data.at[i,'lat2']
 		lon1 = data.at[i,'lon1']
 		lon2 = data.at[i,'lon2']
+
+		misf = data.at[i,'l2_norm']
+		cum_misf += misf
 		# synthetics in the old directory?
 		#synth_filename = os.path.join(datadir,'corr','{}--{}.sac'.format(sta1,sta2))
 		#print(synth_filename)
@@ -126,6 +140,8 @@ if test_steplength:
 			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
 			stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
 
+			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf]))
+			
 
 			for corrs in obs_correlations:
 
@@ -135,13 +151,16 @@ if test_steplength:
 else: 
 	pass
 
-
+inffile.write('-'*40)
+inffile.write('\nCumulative misfit: %g\n' %cum_misf)
+inffile.write('-'*40)
+inffile.close()
 stafile.close()
 # Set up a prelim_sourcemodel.h5: 
 # Contains starting model + step length * (-grad) for steepest descent
-# This would be the point to project to some lovely, lovely basis functions..
+# This would be the point to project to some lovely basis functions..
 grad = os.path.join(datadir,'grad','grad_all.npy')
-neg_grad = -1 * np.load(grad)
+neg_grad = -1. * np.load(grad)
 new_sourcemodel = os.path.join(newdir,'starting_model.h5')
 
 _update_steepestdesc(new_sourcemodel,neg_grad,step_length=step_length,

@@ -15,8 +15,8 @@ source_model = sys.argv[1]
 oldstep = sys.argv[2]
 min_snr = 0.0
 nr_msr = 1
-step_length = None
-perc_step_length = 0.8
+step_length = 10
+perc_step_length = None
 test_steplength = True
 ####################################
 
@@ -138,8 +138,8 @@ stafile.close()
 # Set up a prelim_sourcemodel.h5: 
 # Contains starting model + step length * (-grad) for steepest descent
 # This would be the point to project to some lovely, lovely basis functions..
-neg_grad = os.path.join(datadir,'grad','grad_all.npy')
-neg_grad = np.load(neg_grad)
+grad = os.path.join(datadir,'grad','grad_all.npy')
+neg_grad = -1 * np.load(grad)
 new_sourcemodel = os.path.join(newdir,'starting_model.h5')
 
 _update_steepestdesc(new_sourcemodel,neg_grad,step_length=step_length,

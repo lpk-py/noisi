@@ -16,13 +16,13 @@ oldstep = sys.argv[2]
 min_snr = 0.0
 min_stck = 640.
 nr_msr = 20
-step_length = 10
+step_length = 50
 perc_step_length = None
 # Only if the following is set to True, a small subset (nr_msr) 
 # of data will be selected and copied and their misfit evaluated
 # for a step length test. Otherwise, only the update of the source model
 # is performed. 
-prepare_test_steplength = True
+prepare_test_steplength = False
 ####################################
 
 
@@ -81,7 +81,7 @@ msrfile = os.path.join(datadir,"{}.measurement.csv".format(source_config['mtype'
 newstep = int(oldstep) + 1
 newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
 
-if not os.path.exist(newdir):
+if not os.path.exists(newdir):
 	newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
 	os.mkdir(newdir)
 	os.mkdir(os.path.join(newdir,'obs_slt'))
@@ -149,7 +149,7 @@ if prepare_test_steplength:
 			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
 			stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
 
-			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf]))
+			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
 			
 
 			for corrs in obs_correlations:

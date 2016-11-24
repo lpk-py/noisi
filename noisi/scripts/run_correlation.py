@@ -17,7 +17,7 @@ from noisi import filter
 from scipy.signal import sosfilt
 from noisi.util.windows import my_centered, zero_buddy
 from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs, rem_no_obs
-
+import matplotlib.pyplot as plt
 #ToDo: put in the possibility to run on mixed channel pairs
 def paths_input(cp,source_conf,step,kernelrun):
     
@@ -199,7 +199,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 spec2 = np.fft.rfft(s2,n)
                 
               
-                g1g2_tr = np.multiply(spec1,np.conjugate(spec2))
+                g1g2_tr = np.multiply(np.conjugate(spec1),spec2)
                 c = np.multiply(g1g2_tr,nsrc.get_spect(i))
 
 
@@ -231,7 +231,109 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
             
         
 
+def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
+    src,source_conf):
+    
+    #ToDo: Take care of saving metainformation
+    #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
+    #ToDo: check whether to include autocorrs from user (now hardcoded off)
+    #ToDo: Parallel loop(s)
+    #ToDo tests
+    
+    ntime, n, n_corr = get_ns(wf1,source_conf)
+    
+    
+    taper = cosine_taper(ntime,p=0.05)
 
+
+    with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
+        
+        
+        if wf1.stats['Fs'] != wf2.stats['Fs']:
+            msg = 'Sampling rates of synthetic green\'s functions must match.'
+            raise ValueError(msg)
+        
+        # initialize new hdf5 files for correlation and green's function correlation
+        #with wf1.copy_setup(corr_file,nt=n_corr) as correl, NoiseSource(src) as nsrc:
+        #with wf1.copy_setup(corr_file,nt=n_corr) as correl:
+        
+
+        with NoiseSource(src) as nsrc:
+
+            correlation = np.zeros(n_corr)
+            
+
+            kern = np.zeros(wf1.stats['ntraces'])
+
+            # Try to use a trick: Use causal and acausal part of f separately.
+            f = read(adjt)[0]
+            f.data = my_centered(f.data,n_corr)
+            
+            n_acausal_samples = (f.stats.npts-1)/2
+            specf = np.fft.rfft(f[n_acausal_samples:],n)
+            # Loop over source locations
+            #with click.progressbar(range(wf1.stats['ntraces']),\
+            #label='Correlating...' ) as ind:
+            for i in range(wf1.stats['ntraces']):
+
+               
+                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+                spec1 = np.fft.rfft(s1,n)
+                T = np.multiply(np.conjugate(spec1),nsrc.get_spect(i))
+                # plt.plot(np.abs(spec1)/np.max(np.abs(spec1)))
+                # plt.plot(np.abs(T)/np.max(np.abs(T)))
+                # plt.show()
+                T = np.fft.irfft(T,n)[-len(s1):]
+                # if i in [1,2,3,4,5]:
+                #     plt.plot(T[::-1]/np.max(np.abs(T)))
+                #     plt.plot(s1/np.max(np.abs(s1)),'--')
+                #     plt.show()                
+                # Get s2 in the shape of f
+                # we need to add half of the length of f before G to replace the
+                # acausal part that G does not have to start with:
+                
+                #s2 = np.zeros(n)
+                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                #s2[n_acausal_samples:n_acausal_samples+ntime] = s2_caus
+                spec2 = np.fft.rfft(s2,n)
+                # plt.plot(s2_caus/np.max(np.abs(s2_caus)))
+                # plt.plot(f.data/np.max(np.abs(f.data)))
+                # plt.plot(s2/np.max(np.abs(s2)))
+                # plt.plot(n_acausal_samples,0.5,'rd')
+
+                # plt.show()
+
+                # transform both f and s2 to fourier d 
+                # (again, zeropadding but just to avoid circular convolution)
+                
+                
+                
+                # plt.plot(np.abs(spec2)/np.max(np.abs(spec2)))
+                # plt.plot(np.abs(specf)/np.max(np.abs(specf)))
+                # plt.show()
+                g2f_tr = np.multiply(np.conjugate(spec2),specf)
+                #plt.plot(n_acausal_samples,0.5,'rd')
+                #plt.plot(n,0.5,'gd')
+                u_dagger = np.fft.irfft(g2f_tr,n)[-len(s1):]
+                #plt.plot(u_dagger/np.max(np.abs(u_dagger)))
+                #plt.plot(T[::-1]/np.max(np.abs(T)))
+
+                #plt.show()
+
+            
+                # The frequency spectrum of the noise source is included here
+               ## corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                # A Riemann sum -- one could actually build in a more fancy integration here
+                kern[i] = np.dot(u_dagger,T) * f.stats.delta
+                
+
+                if i%50000 == 0:
+                    print("Finished {} source locations.".format(i))
+
+                #np.save(kernel,kern) 
+            return(kern)
+
+            
 
 #def corr(c,src,c_int,source_conf):
 #    """

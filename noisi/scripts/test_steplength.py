@@ -81,7 +81,7 @@ msrfile = os.path.join(datadir,"{}.measurement.csv".format(source_config['mtype'
 newstep = int(oldstep) + 1
 newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
 
-if not os.path.exist(newdir):
+if not os.path.exists(newdir):
 	newdir = os.path.join(source_config['source_path'],'step_' + str(newstep))
 	os.mkdir(newdir)
 	os.mkdir(os.path.join(newdir,'obs_slt'))
@@ -149,7 +149,7 @@ if prepare_test_steplength:
 			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
 			stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
 
-			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf]))
+			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
 			
 
 			for corrs in obs_correlations:

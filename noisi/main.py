@@ -104,7 +104,8 @@ def setup_source(source_model):
     os.system('cp {} {}'.format(os.path.join(_ROOT,'setup_noisesource.ipynb'),
     source_model))  
     os.system('cp {} {}'.format(os.path.join(_ROOT,'setup_noisesource.py'),
-    source_model))  
+    source_model))
+
     
     click.secho("Copied default source_config.json and measr_config.json to source model directory, please edit. \
 Please run setup_noisesource.ipynb or setup_noisesource.py after editing to create starting model.")

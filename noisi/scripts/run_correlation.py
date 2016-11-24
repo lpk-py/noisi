@@ -7,7 +7,8 @@ import h5py
 import json
 import click
 from glob import glob
-from scipy.signal.signaltools import fftconvolve,_next_regular
+from scipy.signal.signaltools import fftconvolve
+from scipy.fftpack import next_fast_len
 from obspy import Trace, read
 from noisi import NoiseSource, WaveField
 from noisi.util import geo, natural_keys
@@ -130,7 +131,7 @@ def get_ns(wf1,source_conf):
     print(Fs)
     
     # Necessary length of zero padding for carrying out frequency domain correlations/convolutions
-    n = _next_regular(2*nt-1)     
+    n = next_fast_len(2*nt-1)     
     
     # Number of time steps for synthetic correlation
     n_lag = int(source_conf['max_lag'] * Fs)
@@ -159,7 +160,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
     
     
     taper = cosine_taper(ntime,p=0.05)
-    
+    print(kernelrun)
     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
         
         
@@ -177,7 +178,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
             correlation = np.zeros(n_corr)
             
             if kernelrun:
-
+                
                 #if not os.path.exists(adjt):
                 #    print('Adjoint source %s not found, skipping kernel.')
                 #    return()
@@ -358,12 +359,12 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False,obs_only
             print(os.path.basename(adjt))
             continue
 
-        else:
+        
             #if int(step) == 0:
                # if source_config['ktype'] == 'td':
 
                     #print('Time domain preliminary kernel...')
-            g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
+        g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
 
             #     elif source_config['ktype'] == 'fd':
             #         print('Frequency domain preliminary kernel...')

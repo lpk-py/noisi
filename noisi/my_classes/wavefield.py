@@ -6,7 +6,8 @@ from obspy import Trace
 from noisi.util import plot
 from noisi import filter
 from scipy.signal import sosfilt
-from scipy.signal.signaltools import _next_regular
+from scipy.fftpack import next_fast_len
+#from scipy.signal.signaltools import _next_regular
 from obspy.signal.invsim import cosine_taper
 from obspy.signal.filter import integer_decimation
 import click

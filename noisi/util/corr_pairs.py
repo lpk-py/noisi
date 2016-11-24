@@ -109,7 +109,7 @@ def rem_fin_prs(stapairs,source_conf,step,kernelrun):
 
 # Find the filename of the synthetic correlation from the one of the observed correlation
 def get_synthetics_filename(obs_filename,dir,synth_location='',
-    fileformat='sac',synth_channel_basename='MX',ignore_network=True):
+    fileformat='sac',synth_channel_basename='??',ignore_network=True):
 
     inf = obs_filename.split('--')
 

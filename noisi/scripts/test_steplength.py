@@ -128,19 +128,17 @@ if prepare_test_steplength:
 	cum_misf = 0.0
 	# Take care of the test set for the step length test
 	
-	i = 0
-	while True:
-		if i > nr_msr: break
-	        print(i)
-           	sta1 = data.at[i,'sta1']
-		sta2 = data.at[i,'sta2']
+	for i in range(len(data_select)):
 		
-		lat1 = data.at[i,'lat1']
-		lat2 = data.at[i,'lat2']
-		lon1 = data.at[i,'lon1']
-		lon2 = data.at[i,'lon2']
+		sta1 = data_select.at[i,'sta1']
+		sta2 = data_select.at[i,'sta2']
+		
+		lat1 = data_select.at[i,'lat1']
+		lat2 = data_select.at[i,'lat2']
+		lon1 = data_select.at[i,'lon1']
+		lon2 = data_select.at[i,'lon2']
 
-		misf = data.at[i,'l2_norm']
+		misf = data_select.at[i,'l2_norm']
 
 		cum_misf += misf
 		# synthetics in the old directory?
@@ -149,27 +147,26 @@ if prepare_test_steplength:
 		# copy the relevant observed correlation, oh my
 		obs_dir = os.path.join(source_config['source_path'],'observed_correlations')
 		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
-		if not isnan(misf):
-			cum_misf += misf
 		
-			# copy the relevant observed correlation, oh my
-			obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
-		
-			if len(obs_correlations) > 0:
-				
-				sta1 = sta1.split('.')
-				sta2 = sta2.split('.')
-				stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
-				stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
-
-				inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
-				
-
-				for corrs in obs_correlations:
-		
-					os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
+		cum_misf += misf
+	
+		# copy the relevant observed correlation, oh my
+		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
+	
+		if len(obs_correlations) > 0:
 			
-				i += 1
+			sta1 = sta1.split('.')
+			sta2 = sta2.split('.')
+			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
+			stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
+
+			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
+			
+
+			for corrs in obs_correlations:
+	
+				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
+		
 
 
 	inffile.write('-'*40)

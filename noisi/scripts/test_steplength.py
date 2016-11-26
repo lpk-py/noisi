@@ -104,6 +104,7 @@ if prepare_test_steplength:
 	# ---> prelim_stations.txt
 	data_accept = data[(data.snr > min_snr)]
 	data_accept = data_accept[(data_accept.nstack > min_stck)]
+	
 	data_accept = data_accept[~(data_accept.l2_norm.apply(np.isnan))]
 	data_accept = data_accept[~(data_accept.snr.apply(np.isnan))]
 	data_accept = data_accept[~(data_accept.snr_a.apply(np.isnan))]
@@ -126,8 +127,9 @@ if prepare_test_steplength:
 	cum_misf = 0.0
 	# Take care of the test set for the step length test
 	
-	for i in range(nr_msr):
-
+	i = 0
+	while True:
+		if i > nr_msr: break
 		sta1 = data.at[i,'sta1']
 		sta2 = data.at[i,'sta2']
 		
@@ -137,6 +139,16 @@ if prepare_test_steplength:
 		lon2 = data.at[i,'lon2']
 
 		misf = data.at[i,'l2_norm']
+
+		if isnan(misf):
+			continue
+		if data.at[i,'snr'] < min_snr:
+			continue
+		if data.at[i,'snr_a'] < min_snr:
+			continue
+		if data.at[i,'nstack'] < min_stck:
+			continue
+
 		cum_misf += misf
 		# synthetics in the old directory?
 		#synth_filename = os.path.join(datadir,'corr','{}--{}.sac'.format(sta1,sta2))
@@ -158,7 +170,8 @@ if prepare_test_steplength:
 			for corrs in obs_correlations:
 
 				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
-			
+		
+		i += 1
 
 
 	inffile.write('-'*40)

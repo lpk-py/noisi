@@ -143,7 +143,6 @@ if prepare_test_steplength:
 		misf = data.at[i,'l2_norm']
 
 		cum_misf += misf
-                i += 1
 		# synthetics in the old directory?
 		#synth_filename = os.path.join(datadir,'corr','{}--{}.sac'.format(sta1,sta2))
 		#print(synth_filename)

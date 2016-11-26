@@ -104,7 +104,10 @@ if prepare_test_steplength:
 	# ---> prelim_stations.txt
 	data_accept = data[(data.snr > min_snr)]
 	data_accept = data_accept[(data_accept.nstack > min_stck)]
-
+	data_accept = data_accept[~(data_accept.l2_norm.apply(np.isnan))]
+	data_accept = data_accept[~(data_accept.snr.apply(np.isnan))]
+	data_accept = data_accept[~(data_accept.snr_a.apply(np.isnan))]
+	
 	data_select = data_accept.sample(n=nr_msr)
 
 	stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')

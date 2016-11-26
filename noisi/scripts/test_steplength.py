@@ -13,16 +13,16 @@ from noisi.my_classes.noisesource import NoiseSource
 # ToDo: more fancy and more secure with click or argparse
 source_model = sys.argv[1]
 oldstep = sys.argv[2]
-min_snr = 0.0
-min_stck = 640.
-nr_msr = 20
-step_length = 50
+min_snr = 5.0
+min_stck = 400.
+nr_msr = 10
+step_length = 10
 perc_step_length = None
 # Only if the following is set to True, a small subset (nr_msr) 
 # of data will be selected and copied and their misfit evaluated
 # for a step length test. Otherwise, only the update of the source model
 # is performed. 
-prepare_test_steplength = False
+prepare_test_steplength = True
 ####################################
 
 
@@ -130,7 +130,8 @@ if prepare_test_steplength:
 	i = 0
 	while True:
 		if i > nr_msr: break
-		sta1 = data.at[i,'sta1']
+	        print(i)
+           	sta1 = data.at[i,'sta1']
 		sta2 = data.at[i,'sta2']
 		
 		lat1 = data.at[i,'lat1']
@@ -141,15 +142,15 @@ if prepare_test_steplength:
 		misf = data.at[i,'l2_norm']
 
 		if isnan(misf):
-			continue
-		if data.at[i,'snr'] < min_snr:
-			continue
-		if data.at[i,'snr_a'] < min_snr:
+		    print(misf)
+                    continue
+		if data.at[i,'snr'] < min_snr and data.at[i,'snr_a'] < min_snr:
 			continue
 		if data.at[i,'nstack'] < min_stck:
 			continue
 
 		cum_misf += misf
+                i += 1
 		# synthetics in the old directory?
 		#synth_filename = os.path.join(datadir,'corr','{}--{}.sac'.format(sta1,sta2))
 		#print(synth_filename)
@@ -171,7 +172,6 @@ if prepare_test_steplength:
 
 				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
 		
-		i += 1
 
 
 	inffile.write('-'*40)

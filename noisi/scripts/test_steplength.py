@@ -97,6 +97,7 @@ os.system('cp {} {}'.format(os.path.join(datadir,'starting_model.h5'),newdir))
 
 
 if prepare_test_steplength:
+	obs_dir = os.path.join(source_config['source_path'],'observed_correlations')
 
 	# Read in the csv files of measurement.
 	data = pd.read_csv(msrfile)
@@ -141,14 +142,6 @@ if prepare_test_steplength:
 
 		misf = data.at[i,'l2_norm']
 
-		if isnan(misf):
-		    print(misf)
-                    continue
-		if data.at[i,'snr'] < min_snr and data.at[i,'snr_a'] < min_snr:
-			continue
-		if data.at[i,'nstack'] < min_stck:
-			continue
-
 		cum_misf += misf
                 i += 1
 		# synthetics in the old directory?
@@ -157,21 +150,27 @@ if prepare_test_steplength:
 		# copy the relevant observed correlation, oh my
 		obs_dir = os.path.join(source_config['source_path'],'observed_correlations')
 		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
+		if not isnan(misf):
+			cum_misf += misf
 		
-		if len(obs_correlations) > 0:
-			
-			sta1 = sta1.split('.')
-			sta2 = sta2.split('.')
-			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
-			stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
-
-			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
-			
-
-			for corrs in obs_correlations:
-
-				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
+			# copy the relevant observed correlation, oh my
+			obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
 		
+			if len(obs_correlations) > 0:
+				
+				sta1 = sta1.split('.')
+				sta2 = sta2.split('.')
+				stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
+				stafile.write('{} {} {} {}\n'.format(*(sta2[0:2]+[lat2]+[lon2])))
+
+				inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
+				
+
+				for corrs in obs_correlations:
+		
+					os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
+			
+				i += 1
 
 
 	inffile.write('-'*40)

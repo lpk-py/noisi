@@ -135,7 +135,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
                 snr = snratio(tr_o,**options)
                 snr_a = snratio(tr_o,**_options_ac)
 
-                 
+            
             info.extend([msr_s,msr,l2_so,snr,snr_a,tr_o.stats.sac.user0])
             measurements.loc[i] = info
 

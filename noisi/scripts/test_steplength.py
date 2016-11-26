@@ -13,9 +13,9 @@ from noisi.my_classes.noisesource import NoiseSource
 # ToDo: more fancy and more secure with click or argparse
 source_model = sys.argv[1]
 oldstep = sys.argv[2]
-min_snr = 0.0
-min_stck = 640.
-nr_msr = 20
+min_snr = 5.0
+min_stck = 400.
+nr_msr = 10
 step_length = 10
 perc_step_length = None
 # Only if the following is set to True, a small subset (nr_msr) 
@@ -131,7 +131,8 @@ if prepare_test_steplength:
 	i = 0
 	while True:
 		if i > nr_msr: break
-		sta1 = data.at[i,'sta1']
+	        print(i)
+           	sta1 = data.at[i,'sta1']
 		sta2 = data.at[i,'sta2']
 		
 		lat1 = data.at[i,'lat1']
@@ -141,6 +142,14 @@ if prepare_test_steplength:
 
 		misf = data.at[i,'l2_norm']
 
+		cum_misf += misf
+		
+		# synthetics in the old directory?
+		#synth_filename = os.path.join(datadir,'corr','{}--{}.sac'.format(sta1,sta2))
+		#print(synth_filename)
+		# copy the relevant observed correlation, oh my
+		obs_dir = os.path.join(source_config['source_path'],'observed_correlations')
+		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
 		if not isnan(misf):
 			cum_misf += misf
 		
@@ -158,7 +167,7 @@ if prepare_test_steplength:
 				
 
 				for corrs in obs_correlations:
-
+		
 					os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
 			
 				i += 1

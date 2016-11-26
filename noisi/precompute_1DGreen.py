@@ -25,7 +25,7 @@ for sta in stations:
         continue
     inf = sta.split()
     rec_codes.append(inf[0].strip()+'.'+inf[1].strip())
-    rec_locations.append([float(inf[3]),float(inf[2])])
+    rec_locations.append([float(inf[2]),float(inf[3])])
 
 
 # set the parameters

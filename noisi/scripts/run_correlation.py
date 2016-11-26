@@ -200,12 +200,20 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 
               
                 g1g2_tr = np.multiply(np.conjugate(spec1),spec2)
+                if i%50000 == 0:
+                    print(g1g2_tr[0:10],file=None)
+                    print(g1g2_tr.max(),file=None)
                 c = np.multiply(g1g2_tr,nsrc.get_spect(i))
-
+                if i%50000==0:
+                    print(c[0:10],file=None)
+                    print(c.max(),file=None)
 
                 if kernelrun:
                     # The frequency spectrum of the noise source is included here
                     corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                    if i%50000 == 0:
+                        print(corr_temp[0:10],file=None)
+                        print(corr_temp.max(),file=None)
                     # A Riemann sum -- one could actually build in a more fancy integration here
                     kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
                     
@@ -283,7 +291,9 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
                 # plt.plot(np.abs(spec1)/np.max(np.abs(spec1)))
                 # plt.plot(np.abs(T)/np.max(np.abs(T)))
                 # plt.show()
-                T = np.fft.irfft(T,n)[-len(s1):]
+
+                 # it would be cleaner to use ifftshift here!
+                T = np.fft.ifftshift(np.fft.irfft(T,n))[0:len(s1)]#[-len(s1):]
                 # if i in [1,2,3,4,5]:
                 #     plt.plot(T[::-1]/np.max(np.abs(T)))
                 #     plt.plot(s1/np.max(np.abs(s1)),'--')
@@ -314,11 +324,13 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
                 g2f_tr = np.multiply(np.conjugate(spec2),specf)
                 #plt.plot(n_acausal_samples,0.5,'rd')
                 #plt.plot(n,0.5,'gd')
-                u_dagger = np.fft.irfft(g2f_tr,n)[-len(s1):]
-                #plt.plot(u_dagger/np.max(np.abs(u_dagger)))
-                #plt.plot(T[::-1]/np.max(np.abs(T)))
 
-                #plt.show()
+                # it would be cleaner to use ifftshift here!
+                u_dagger = np.fft.ifftshift(np.fft.irfft(g2f_tr,n))[0:len(s1)]#[-len(s1):]
+                # plt.plot(u_dagger/np.max(np.abs(u_dagger)))
+                # plt.plot(T/np.max(np.abs(T)))
+
+                # plt.show()
 
             
                 # The frequency spectrum of the noise source is included here

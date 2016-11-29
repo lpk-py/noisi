@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 
 # In[2]:
+
 stations_file = '/Users/lermert/Desktop/Japan/green_1d/stations.txt'
 stations = open(stations_file,'r').read().split('\n')
 
@@ -55,7 +56,10 @@ g_fd = np.zeros(freq.shape)
 
 def green_membrane(r,plot=False):
     
-    fac1 = -1j*1./(rho*v_phase**2*4.)
+    if data_quantity == 'DIS':
+        fac1 = -1j*1./(rho*v_phase**2*4.)
+    elif data_quantity == 'VEL':
+        fac1 = w[1:]*1./(rho*v_phase**2*4.)
     fac2 = np.sqrt((2.*v_phase)/(pi*w[1:]*r))
     phase = -1j * w[1:] / v_phase * r + 1j * pi / 4.0
     decay = -(w[1:]*r)/(2.*v_phase*q)

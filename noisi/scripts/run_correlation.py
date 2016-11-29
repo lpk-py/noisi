@@ -214,7 +214,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                     if i%50000 == 0:
                         print(corr_temp[0:10],file=None)
                         print(corr_temp.max(),file=None)
-                    # A Riemann sum -- one could actually build in a more fancy integration here
+                    # A Riemann sum 
                     kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
                     
                 

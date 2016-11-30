@@ -191,6 +191,14 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
             #with click.progressbar(range(wf1.stats['ntraces']),\
             #label='Correlating...' ) as ind:
             for i in range(wf1.stats['ntraces']):
+
+                # noise source spectrum at this location
+                # if calculating kernel, the spectrum is location independent.
+                S = nsrc.get_spect(i)
+
+                if S.sum() == 0.: # The spectrum has 0 phase.
+                    continue
+
                
                 s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
                 s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
@@ -203,17 +211,19 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 if i%50000 == 0:
                     print(g1g2_tr[0:10],file=None)
                     print(g1g2_tr.max(),file=None)
-                c = np.multiply(g1g2_tr,nsrc.get_spect(i))
+
+                c = np.multiply(g1g2_tr,S)
+
                 if i%50000==0:
                     print(c[0:10],file=None)
                     print(c.max(),file=None)
 
                 if kernelrun:
-                    # The frequency spectrum of the noise source is included here
+                    
                     corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                    if i%50000 == 0:
-                        print(corr_temp[0:10],file=None)
-                        print(corr_temp.max(),file=None)
+                    ##if i%50000 == 0:
+                    #    ##print(corr_temp[0:10],file=None)
+                        #print(corr_temp.max(),file=None)
                     # A Riemann sum 
                     kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
                     
@@ -240,7 +250,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
         
 
 def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
-    src,source_conf):
+    src,source_conf,scale=1.0):
     
     #ToDo: Take care of saving metainformation
     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
@@ -279,15 +289,18 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
             
             n_acausal_samples = (f.stats.npts-1)/2
             specf = np.fft.rfft(f[n_acausal_samples:],n)
+
             # Loop over source locations
             #with click.progressbar(range(wf1.stats['ntraces']),\
             #label='Correlating...' ) as ind:
             for i in range(wf1.stats['ntraces']):
 
-               
-                s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
+                #print(i)
+                s1 = np.ascontiguousarray(wf1.data[i,:]*taper) * scale
+                #print(s1.sum())
                 spec1 = np.fft.rfft(s1,n)
-                T = np.multiply(np.conjugate(spec1),nsrc.get_spect(i))
+                #print(spec1.sum())
+                T = np.multiply(np.conj(spec1),nsrc.get_spect(i))
                 # plt.plot(np.abs(spec1)/np.max(np.abs(spec1)))
                 # plt.plot(np.abs(T)/np.max(np.abs(T)))
                 # plt.show()
@@ -303,7 +316,8 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
                 # acausal part that G does not have to start with:
                 
                 #s2 = np.zeros(n)
-                s2 = np.ascontiguousarray(wf2.data[i,:]*taper)
+                s2 = np.ascontiguousarray(wf2.data[i,:]*taper) * scale
+                #print(s2.sum())
                 #s2[n_acausal_samples:n_acausal_samples+ntime] = s2_caus
                 spec2 = np.fft.rfft(s2,n)
                 # plt.plot(s2_caus/np.max(np.abs(s2_caus)))
@@ -321,7 +335,8 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
                 # plt.plot(np.abs(spec2)/np.max(np.abs(spec2)))
                 # plt.plot(np.abs(specf)/np.max(np.abs(specf)))
                 # plt.show()
-                g2f_tr = np.multiply(np.conjugate(spec2),specf)
+                g2f_tr = np.multiply(np.conj(spec2),specf)
+                #print(specf.sum())
                 #plt.plot(n_acausal_samples,0.5,'rd')
                 #plt.plot(n,0.5,'gd')
 
@@ -336,8 +351,9 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
                 # The frequency spectrum of the noise source is included here
                ## corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
                 # A Riemann sum -- one could actually build in a more fancy integration here
+                #print(f.stats.delta)
                 kern[i] = np.dot(u_dagger,T) * f.stats.delta
-                
+                #print(kern[i])
 
                 if i%50000 == 0:
                     print("Finished {} source locations.".format(i))

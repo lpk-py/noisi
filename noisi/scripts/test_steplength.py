@@ -18,6 +18,9 @@ min_stck = 400.
 nr_msr = 10
 step_length = 10
 perc_step_length = None
+# include those data points in the test which are at or above this
+# fraction of maximum misfit:
+perc_of_max_misfit = 0.6666
 # Only if the following is set to True, a small subset (nr_msr) 
 # of data will be selected and copied and their misfit evaluated
 # for a step length test. Otherwise, only the update of the source model
@@ -113,9 +116,9 @@ if prepare_test_steplength:
 
 	# select data...
 	data_select1 = data_accept[data_accept.\
-	l2_norm>=0.6666*data_accept.l2_norm.max()]
+	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()]
 	data_select2 = data_accept[~data_accept.\
-	l2_norm>=0.6666*data_accept.l2_norm.max()].\
+	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()].\
 	sample(n=nr_msr-len(data_select1))
 
 	data_select = data_select1 + data_select2

@@ -18,6 +18,9 @@ min_stck = 400.
 nr_msr = 10
 step_length = 10
 perc_step_length = None
+# include those data points in the test which are at or above this
+# fraction of maximum misfit:
+perc_of_max_misfit = 0.6666
 # Only if the following is set to True, a small subset (nr_msr) 
 # of data will be selected and copied and their misfit evaluated
 # for a step length test. Otherwise, only the update of the source model
@@ -110,7 +113,15 @@ if prepare_test_steplength:
 	data_accept = data_accept[~(data_accept.snr.apply(np.isnan))]
 	data_accept = data_accept[~(data_accept.snr_a.apply(np.isnan))]
 	
-	data_select = data_accept.sample(n=nr_msr)
+
+	# select data...
+	data_select1 = data_accept[data_accept.\
+	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()]
+	data_select2 = data_accept[~data_accept.\
+	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()].\
+	sample(n=nr_msr-len(data_select1))
+
+	data_select = data_select1 + data_select2
 
 	stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
 	stafile.write("Station pairs to be used for step lenght test:\n")
@@ -150,7 +161,11 @@ if prepare_test_steplength:
 		
 
 		if len(obs_correlations) > 0:
-			
+
+			# Use preferentially '', '00' channels.
+			obs_correlations.sort()
+			corr = obs_correlations[0]
+
 			sta1 = sta1.split('.')
 			sta2 = sta2.split('.')
 			stafile.write('{} {} {} {}\n'.format(*(sta1[0:2]+[lat1]+[lon1])))
@@ -159,9 +174,7 @@ if prepare_test_steplength:
 			inffile.write('{} {}, {} {} L2 misfit: {}\n'.format(*(sta1[0:2]+sta2[0:2]+[misf])))
 			
 
-			for corrs in obs_correlations:
-	
-				os.system('cp {} {}'.format(corrs,os.path.join(newdir,'obs_slt')))
+			os.system('cp {} {}'.format(corr,os.path.join(newdir,'obs_slt')))
 		
 
 

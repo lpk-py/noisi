@@ -13,9 +13,10 @@ from noisi.my_classes.noisesource import NoiseSource
 # ToDo: more fancy and more secure with click or argparse
 source_model = sys.argv[1]
 oldstep = sys.argv[2]
+grad_file = sys.argv[3]
 min_snr = 5.0
-min_stck = 400.
-nr_msr = 10
+min_stck = 320.
+nr_msr = 300
 step_length = 10
 perc_step_length = None
 # include those data points in the test which are at or above this
@@ -117,12 +118,17 @@ if prepare_test_steplength:
 	# select data...
 	data_select1 = data_accept[data_accept.\
 	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()]
-	data_select2 = data_accept[~data_accept.\
-	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()].\
+	data_select2 = data_accept[~(data_accept.\
+	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max())].\
 	sample(n=nr_msr-len(data_select1))
+	print 'selection1'
+	print data_select1
+	print 'selection2'
+	print data_select2
 
-	data_select = data_select1 + data_select2
-
+	data_select = pd.concat([data_select1,data_select2])
+	print 'selection3'
+	print data_select
 	stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
 	stafile.write("Station pairs to be used for step lenght test:\n")
 
@@ -190,9 +196,10 @@ else:
 # Set up a prelim_sourcemodel.h5: 
 # Contains starting model + step length * (-grad) for steepest descent
 # This would be the point to project to some lovely basis functions..
-grad = os.path.join(datadir,'grad','grad_clip_smooth.npy')
+grad = grad_file
 neg_grad = -1. * np.load(grad)
 new_sourcemodel = os.path.join(newdir,'starting_model.h5')
+
 
 _update_steepestdesc(new_sourcemodel,neg_grad,step_length=step_length,
 	perc_step_length=perc_step_length,project=False,smooth=False)

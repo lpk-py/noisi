@@ -18,6 +18,7 @@ min_snr = 5.0
 min_stck = 320.
 nr_msr = 300
 step_length = None
+mode = 'max' # 'max', 'random'
 # Give as part per hundred, e.g 0.1 for 10%
 perc_step_length = 0.1
 # include those data points in the test which are at or above this
@@ -117,19 +118,16 @@ if prepare_test_steplength:
 	
 
 	# select data...
-	data_select1 = data_accept[data_accept.\
-	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max()]
-	data_select2 = data_accept[~(data_accept.\
-	l2_norm>=perc_of_max_misfit*data_accept.l2_norm.max())].\
-	sample(n=nr_msr-len(data_select1))
-	print 'selection1'
-	print data_select1
-	print 'selection2'
-	print data_select2
+	if mode =='random':
+		data_select2 = data_accept.sample(n=nr_msr)
+	elif mode == 'max':
+		data_select1 = data_accept.sort_values(by='l2_norm',na_position='start')
+		data_select = data_select1.iloc[-nr_msr:]
+	
+	print(data_select)
 
-	data_select = pd.concat([data_select1,data_select2])
-	print 'selection3'
-	print data_select
+	#data_select = pd.concat([data_select1,data_select2])
+	
 	stafile = open(os.path.join(newdir,'stations_slt.txt'),'w')
 	stafile.write("Station pairs to be used for step lenght test:\n")
 

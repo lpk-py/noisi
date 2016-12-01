@@ -128,7 +128,7 @@ if prepare_test_steplength:
 	cum_misf = 0.0
 	# Take care of the test set for the step length test
 	
-	for i in range(len(data_select)):
+	for i in data_select.index:
 		
 		sta1 = data_select.at[i,'sta1']
 		sta2 = data_select.at[i,'sta2']
@@ -149,11 +149,7 @@ if prepare_test_steplength:
 		obs_dir = os.path.join(source_config['source_path'],'observed_correlations')
 		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
 		
-		cum_misf += misf
-	
-		# copy the relevant observed correlation, oh my
-		obs_correlations = glob_obs_corr(sta1,sta2,obs_dir,ignore_network=True)
-	
+
 		if len(obs_correlations) > 0:
 			
 			sta1 = sta1.split('.')
@@ -181,7 +177,7 @@ else:
 # Set up a prelim_sourcemodel.h5: 
 # Contains starting model + step length * (-grad) for steepest descent
 # This would be the point to project to some lovely basis functions..
-grad = os.path.join(datadir,'grad','grad_all.npy')
+grad = os.path.join(datadir,'grad','grad_clip_smooth.npy')
 neg_grad = -1. * np.load(grad)
 new_sourcemodel = os.path.join(newdir,'starting_model.h5')
 

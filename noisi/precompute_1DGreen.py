@@ -11,11 +11,11 @@ from math import sqrt, pi
 from scipy.signal import hann
 from obspy.geodetics import gps2dist_azimuth
 import matplotlib.pyplot as plt
-
+import sys
 
 # In[2]:
 
-stations_file = '/Users/lermert/Desktop/Japan/green_1d/stations.txt'
+stations_file = sys.argv[1]
 stations = open(stations_file,'r').read().split('\n')
 
 rec_codes = []
@@ -30,8 +30,8 @@ for sta in stations:
 
 
 # set the parameters
-output_location = '/Users/lermert/Desktop/Japan/green_1d/wavefield'
-srcgrid = np.load('/Users/lermert/Desktop/Japan/green_1d/sourcegrid.npy')
+output_location = './wavefield_vel'
+srcgrid = np.load('./sourcegrid.npy')
 #rec_codes = ['BO.SAG..BHZ','BO.NSK..BHZ','BO.KMT..BHZ','BO.IZH..BHZ']
 #rec_locations = [[36.2553,133.3050],[34.3403,132.0018],[33.6782,135.4899],[34.1359,129.2066]]
 v_phase = 3300.
@@ -52,7 +52,7 @@ ntraces = len(srcgrid[0])
 freq = np.fft.rfftfreq(2*int(npts),d=1.0/Fs)
 print freq.shape
 w = 2 * pi * freq
-g_fd = np.zeros(freq.shape)
+g_fd = np.zeros(freq.shape,dtype=np.complex)
 
 def green_membrane(r,plot=False):
     
@@ -120,12 +120,12 @@ for i in range(len(rec_codes)):
         # transform back to time domain
             g1_td = np.fft.irfft(g1)[0:3600]
             g1_td_taper = np.fft.irfft(taper*g1)[0:3600]
-            if k % 30000 == 0:
-                t = np.linspace(0,npts*1./Fs,npts)
-                #plt.plot(t,g1_td)
-                plt.plot(t,g1_td_taper)
-                plt.title('Greens fct, distance %g m' %r)
-                plt.show()
+            #if k % 30000 == 0:
+            #    #t = np.linspace(0,npts*1./Fs,npts)
+            #    #plt.plot(t,g1_td)
+            #    #plt.plot(t,g1_td_taper)
+            #    plt.title('Greens fct, distance %g m' %r)
+            #    plt.show()
 
 
         # write the result

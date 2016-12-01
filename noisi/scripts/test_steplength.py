@@ -17,8 +17,9 @@ grad_file = sys.argv[3]
 min_snr = 5.0
 min_stck = 320.
 nr_msr = 300
-step_length = 10
-perc_step_length = None
+step_length = None
+# Give as part per hundred, e.g 0.1 for 10%
+perc_step_length = 0.1
 # include those data points in the test which are at or above this
 # fraction of maximum misfit:
 perc_of_max_misfit = 0.6666
@@ -138,7 +139,11 @@ if prepare_test_steplength:
 	inffile.write('old step: %s\n' %oldstep)
 	inffile.write('min_snr %g\n' %min_snr)
 	inffile.write('min_stck %g\n' %min_stck)
-	inffile.write('step_length %g\n' %step_length)
+
+	if step_length is not None:
+		inffile.write('step_length %g\n' %step_length)
+	elif perc_step_length is not None:
+		inffile.write('step_length as fraction of max. weight%g\n' %perc_step_length)
 	inffile.write('-'*40)
 	inffile.write("\nStation pairs to be used for step lenght test:\n")
 

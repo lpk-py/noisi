@@ -40,7 +40,7 @@ def get_station_info(stats):
 
 
 
-def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
+def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**options):
     
     """
     Get measurements on noise correlation data and synthetics. 
@@ -52,10 +52,16 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     step_dir = os.path.join(source_config['source_path'],
     step_n)
     
-    files = [f for f in os.listdir(os.path.join(source_config['source_path'],
-    'observed_correlations')) ]
-    files = [os.path.join(source_config['source_path'],
-    'observed_correlations',f) for f in files]
+    if step_test:
+        corr_dir = os.path.join(step_dir,'obs_slt')
+    else:
+        corr_dir = os.path.join(source_config['source_path'],
+    'observed_correlations')
+
+
+    files = [f for f in os.listdir(corr_dir)) ]
+
+    files = [os.path.join(corr_dir,f) for f in files]
     
     synth_dir = os.path.join(step_dir,'corr')
     
@@ -145,7 +151,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,**options):
     filename = '{}.measurement.csv'.format(mtype)
     measurements.to_csv(os.path.join(step_dir,filename),index=None)
 
-def run_measurement(source_configfile,measr_configfile,step,ignore_network):
+def run_measurement(source_configfile,measr_configfile,
+    step,ignore_network,step_test):
 
 
     # get parameters    
@@ -170,5 +177,5 @@ def run_measurement(source_configfile,measr_configfile,step,ignore_network):
         window_params['plot']           =    measr_config['window_plot_measurements']
    
     measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
-        g_speed=g_speed,window_params=window_params)
+        step_test=step_test,g_speed=g_speed,window_params=window_params)
     

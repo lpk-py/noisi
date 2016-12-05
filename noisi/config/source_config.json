@@ -10,6 +10,7 @@
     ],
     "preprocess_decimation_factor": null,
 	"preprocess_truncate_sec":null,
+    "model_observed_only":false,
     "max_lag": 0,
     "channel": "MXZ",
     "mtype": "ln_energy_ratio",

@@ -415,13 +415,15 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
 
 
 
-def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False,obs_only=True):
+def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
 
     step = int(step)
 
 
     #ToDo think about that configuration decorator
     source_config=json.load(open(source_configfile))
+    obs_only = source_config['model_observed_only']
+
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
     p = define_correlationpairs(source_config['project_path'])

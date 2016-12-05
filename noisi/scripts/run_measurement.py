@@ -59,7 +59,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
     'observed_correlations')
 
 
-    files = [f for f in os.listdir(corr_dir)) ]
+    files = [f for f in os.listdir(corr_dir) ]
 
     files = [os.path.join(corr_dir,f) for f in files]
     

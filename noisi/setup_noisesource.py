@@ -100,17 +100,19 @@ print 'Filling geographical distribution...'
 basis1[0,:] = np.ones(ntraces) 
 
 if only_ocean:
-    basis1[0,:] *= np.array(get_ocean_mask()).astype(int)
-    
+    ocean_mask = np.array(get_ocean_mask()).astype(int)
+    basis1[0,:] *= ocean_mask
+
     # superimposed Gaussian blob(s)
 if gaussian_blobs:
     i = 1
     for blob in params_gaussian_blobs:
         dist = get_distance(grd,blob['center'])
         basis1[i,:] = np.exp(-(dist)**2/(2*blob['sigma_radius_m']**2))
+        
+        if only_ocean:
+            basis1[i,:] *= ocean_mask
         i+=1
-    if only_ocean:
-        basis1[i,:] *= np.array(get_ocean_mask()).astype(int)
 
 
 print 'Filling spectra...'  

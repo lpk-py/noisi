@@ -11,7 +11,7 @@ from noisi import WaveField
 import json
 from glob import glob
 import os
-from scipy.signal.signaltools import _next_regular
+from scipy.fftpack import next_fast_len
 from scipy.signal import hann
 
 
@@ -61,7 +61,7 @@ with WaveField(wfs[0]) as wf:
     df = wf.stats['Fs']
     nt = wf.stats['nt']
     # The number of points for the fft is larger due to zeropadding --> apparent higher frequency sampling\n",
-    n = _next_regular(2*nt-1)
+    n = next_fast_len(2*nt-1)
     
     freq = np.fft.rfftfreq(n,d=1./df)
     
@@ -98,8 +98,10 @@ basis1 = np.zeros((num_bases,ntraces))
 print 'Filling geographical distribution...'
 # homogeneous layer
 basis1[0,:] = np.ones(ntraces) 
+
 if only_ocean:
     basis1[0,:] *= np.array(get_ocean_mask()).astype(int)
+    
     # superimposed Gaussian blob(s)
 if gaussian_blobs:
     i = 1
@@ -107,6 +109,9 @@ if gaussian_blobs:
         dist = get_distance(grd,blob['center'])
         basis1[i,:] = np.exp(-(dist)**2/(2*blob['sigma_radius_m']**2))
         i+=1
+    if only_ocean:
+        basis1[i,:] *= np.array(get_ocean_mask()).astype(int)
+
 
 print 'Filling spectra...'  
 # spectra

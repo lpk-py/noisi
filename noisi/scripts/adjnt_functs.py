@@ -45,7 +45,7 @@ def energy(corr_o,corr_s,g_speed,window_params):
         win = window[0][::-1]
 
     if window[2]:    
-        u = np.multiply(win,corr_s.data)
+        u = np.multiply(np.power(win,2),corr_s.data)
         #adjt_src = 2./(msr_s-msr_o) * u
         adjt_src = u
         success = True

@@ -25,7 +25,7 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
         u_plus = np.multiply(sig_c,win) # to win**2
         u_minus = np.multiply(sig_a,win[::-1])
         #adjt_src = 2./pi * (msr_s-msr_o) * (u_plus / E_plus - u_minus / E_minus)
-        # I don't know where that factor 2 came from!
+        # I don't know where that factor 2 came from. Not consistent with new derivation of kernels
         adjt_src = 1./pi * (u_plus / E_plus - u_minus / E_minus)
         success = True
     else:
@@ -45,7 +45,7 @@ def energy(corr_o,corr_s,g_speed,window_params):
         win = window[0][::-1]
 
     if window[2]:    
-        u = np.multiply(np.power(win,2),corr_s.data)
+        u = 2 * np.multiply(np.power(win,2),corr_s.data)
         
         adjt_src = u
         success = True

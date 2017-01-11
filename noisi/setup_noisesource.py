@@ -11,7 +11,7 @@ from noisi import WaveField
 import json
 from glob import glob
 import os
-from scipy.signal.signaltools import _next_regular
+from scipy.fftpack import next_fast_len
 from scipy.signal import hann
 
 
@@ -26,6 +26,7 @@ sourcepath = '.'
 # geography - Add anything else than a homogeneous distribution by setting to "True" the following:
 only_ocean = False
 gaussian_blobs = False
+no_background = False
 params_gaussian_blobs = [{'center':(0.,0.),'sigma_radius_m':500000.,'rel_weight':2.}]
 
 #spectra
@@ -61,7 +62,7 @@ with WaveField(wfs[0]) as wf:
     df = wf.stats['Fs']
     nt = wf.stats['nt']
     # The number of points for the fft is larger due to zeropadding --> apparent higher frequency sampling\n",
-    n = _next_regular(2*nt-1)
+    n = next_fast_len(2*nt-1)
     
     freq = np.fft.rfftfreq(n,d=1./df)
     
@@ -98,15 +99,22 @@ basis1 = np.zeros((num_bases,ntraces))
 print 'Filling geographical distribution...'
 # homogeneous layer
 basis1[0,:] = np.ones(ntraces) 
+
 if only_ocean:
-    basis1[0,:] *= np.array(get_ocean_mask()).astype(int)
+    ocean_mask = np.array(get_ocean_mask()).astype(int)
+    basis1[0,:] *= ocean_mask
+
     # superimposed Gaussian blob(s)
 if gaussian_blobs:
     i = 1
     for blob in params_gaussian_blobs:
         dist = get_distance(grd,blob['center'])
         basis1[i,:] = np.exp(-(dist)**2/(2*blob['sigma_radius_m']**2))
+        
+        if only_ocean:
+            basis1[i,:] *= ocean_mask
         i+=1
+
 
 print 'Filling spectra...'  
 # spectra
@@ -131,6 +139,9 @@ if gaussian_blobs:
     for blob in params_gaussian_blobs:
         weights1[i] = blob['rel_weight']
         i+=1
+if no_background:
+    weights1[0] = 0.
+    
 #print weights1
 # spectra --- much harder to assign manually, since we need weights for every location. just assigning ones.\n",
 weights2 = np.ones((np.shape(grd)[-1],np.shape(basis2)[0]))

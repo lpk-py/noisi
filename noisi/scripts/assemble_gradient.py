@@ -110,7 +110,7 @@ def assemble_descent_dir(source_model,step,snr_min,n_min,save_all=False):
 
 
 # multiply kernel and measurement, add to descent dir. 
-		
+	
 		else:
 			kernel *= (data.at[i,'syn'] - data.at[i,'obs'])
 			cnt_success += 1 # yuhu

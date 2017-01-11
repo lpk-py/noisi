@@ -5,23 +5,43 @@ from matplotlib.mlab import griddata
 import matplotlib.tri as tri    
 import numpy as np
     
-def plot_grid(map_x,map_y,map_z,stations=[],v=1.0,globe=False,outfile=None,title=None,shade='flat',
-    sequential=False,v_min=None,normalize=True,coastres='c',proj='cyl'):
+def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
+    outfile=None,title=None,shade='flat',cmap=None,
+    sequential=False,v_min=None,normalize=True,coastres='c',proj='cyl',
+    lonmin=None,lonmax=None,latmin=None,latmax=None,mode='interp'):
     
     lat_0  = 0.5*(map_y.max()-map_y.min())
-    m = Basemap(rsphere=6378137,resolution=coastres,projection=proj,lat_0=0.,           lon_0=0.,llcrnrlat=np.min(map_y),urcrnrlat=np.max(map_y),
-    llcrnrlon=np.min(map_x),urcrnrlon=np.max(map_x))
-    if globe:
-        map_x = np.append(map_x,map_x[0])
-        map_y = np.append(map_y,map_y[0])
-        map_z = np.append(map_z,map_z[0])
-    triangles = tri.Triangulation(map_x,map_y)
-    # tripcolor plot.
+
+    if lonmin == None:
+        lonmin = np.min(map_x)
+    if lonmax == None:
+        lonmax = np.max(map_x)
+    if latmax == None:
+        latmax = np.max(map_y)
+    if latmin == None:
+        latmin = np.min(map_y)
+
+
+
+    m = Basemap(rsphere=6378137,resolution=coastres,
+    projection=proj,lat_0=0.,
+    lon_0=0.,llcrnrlat=latmin,urcrnrlat=latmax,
+    llcrnrlon=lonmin,urcrnrlon=lonmax)
+
+
     plt.figure()
     plt.subplot(111)
     plt.gca().set_aspect('equal')
     if title is not None:
         plt.title(title)
+
+    
+
+    if normalize:
+        map_z /= np.max(np.abs(map_z))
+    
+    if v is None:
+        v = np.max(map_z)
 
     if sequential:
         cm = plt.cm.magma
@@ -31,26 +51,44 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=1.0,globe=False,outfile=None,title
         cm = plt.cm.bwr
         v_min =-v
 
-    if normalize:
-        map_z /= np.max(np.abs(map_z))
-   
-    plt.tripcolor(triangles,map_z,shading=shade, vmin=v_min,vmax=v,cmap=cm)
-    m.colorbar(location='bottom',pad=0.4)
-    m.drawcoastlines(linewidth=0.5)
-    #m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
-    #m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
-    d_lon = abs(map_x.max()-map_x.min()) / 5.
-    d_lat = abs(map_y.max()-map_y.min()) / 5.
+    if cmap is not None:
+        cm = cmap
+    
+    print('max. value on map: %g' %map_z.max())
+    if mode == 'interp':
+        triangles = tri.Triangulation(map_x,map_y)
+        # tripcolor plot.
+        plt.tripcolor(triangles,map_z,shading=shade, vmin=v_min,vmax=v,cmap=cm)
+        m.colorbar(location='bottom',pad=0.4)
+    elif mode == 'srclocs':
+        plt.scatter(map_x,map_y,marker='o',c='white')
+    elif mode == 'srcdots':
+        
+        
+        colors = cm(map_z)
 
-    parallels = np.arange(np.min(map_y),np.max(map_y),d_lat).astype(int)
-    meridians = np.arange(np.min(map_x),np.max(map_x),d_lon).astype(int)
-    m.drawparallels(parallels,labels=[1,0,0,0]) # draw parallels
-    m.drawmeridians(meridians,labels=[0,0,0,1])
+        plt.scatter(map_x,map_y,marker='o',c=colors)
+        m.colorbar(location='bottom',pad=0.4)
+    
+    if globe:
+        m.drawcoastlines(linewidth=0.5)
+    else:
+        m.drawcoastlines(linewidth=2.5)
+    if globe:
+        m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
+        m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
+    else:
+        d_lon = round(abs(lonmax-lonmin) / 5.)
+        d_lat = round(abs(latmax-latmin) / 5.)
+        parallels = np.arange(latmin,latmax,d_lat).astype(int)
+        meridians = np.arange(lonmin,lonmax,d_lon).astype(int)
+        m.drawparallels(parallels,labels=[1,0,0,0]) # draw parallels
+        m.drawmeridians(meridians,labels=[0,0,0,1])
 
     #draw station locations
     for sta in stations:
-        m.plot(sta[0],sta[1],'rv',latlon=True)
-    
+        m.plot(sta[0],sta[1],'kv',markersize=10,latlon=True)
+    plt.show()
     if outfile is None:
         plt.show()
     else:
@@ -63,7 +101,7 @@ def plot_sourcegrid(gridpoints,**kwargs):
     m = Basemap(rsphere=6378137,**kwargs)
     m.drawcoastlines()
     
-    m.plot(gridpoints[0],gridpoints[1],'+',markersize=10.,latlon=True)
+    m.plot(gridpoints[0],gridpoints[1],marker='+',markersize=10.,latlon=True)
     plt.show()
     
 

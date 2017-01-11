@@ -14,7 +14,7 @@ from noisi.scripts.run_adjointsrcs import run_adjointsrcs
 #from noisi.scripts.run_kernel import run_kernel
 from noisi.scripts.run_preprocessing import run_preprocessing
 from noisi.scripts.run_preprocessing_data import run_preprocess_data
-from noisi.scripts.assemble_gradient import assemble_descent_dir
+from noisi.scripts.assemble_gradient import assemble_ascent_dir
 @click.group()
 def run():
     """
@@ -196,7 +196,7 @@ def step_test(source_model,step):
 
 
 
-@run.command(help='Assemble descent direction from spatial kernels and measurements')
+@run.command(help='Assemble ascent direction from spatial kernels and measurements')
 @click.argument('source_model')
 @click.argument('step')
 @click.option('--snr_min',default=0.0)
@@ -205,7 +205,7 @@ def step_test(source_model,step):
 def gradient(source_model,step,snr_min,n_min):
     snr_min = float(snr_min)
     source_model = os.path.join(source_model,'source_config.json')
-    assemble_descent_dir(source_model,step,snr_min,n_min)
+    assemble_ascent_dir(source_model,step,snr_min,n_min)
     
     
 #import config.configure as conf

@@ -65,7 +65,8 @@ def paths_input(cp,source_conf,step,kernelrun):
                      'step_'+str(step),
                      'adjt',"{}--{}.sac".format(sta1,sta2))
         adjt = glob(adjt)[0]
-    except IndexError:
+        
+    except IndexError and kernelrun:
         print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
             # ToDo: this is too horrible, please find another solution.
         adjt = '-'
@@ -128,7 +129,7 @@ def get_ns(wf1,source_conf):
         nt = int(wf1.stats['nt'])
         Fs = round(wf1.stats['Fs'],8)
 
-    print(Fs)
+    print('Sampling rate (Hz) %g' %Fs)
     
     # Necessary length of zero padding for carrying out frequency domain correlations/convolutions
     n = next_fast_len(2*nt-1)     
@@ -160,7 +161,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
     
     
     taper = cosine_taper(ntime,p=0.05)
-    print(kernelrun)
+    
     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
         
         
@@ -196,7 +197,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 # if calculating kernel, the spectrum is location independent.
                 S = nsrc.get_spect(i)
 
-                if S.sum() == 0.: # The spectrum has 0 phase.
+                if S.sum() == 0.: # The spectrum has 0 phase anyway
                     continue
 
                
@@ -208,15 +209,15 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 
               
                 g1g2_tr = np.multiply(np.conjugate(spec1),spec2)
-                if i%50000 == 0:
-                    print(g1g2_tr[0:10],file=None)
-                    print(g1g2_tr.max(),file=None)
+                # if i%50000 == 0:
+                #     print(g1g2_tr[0:10],file=None)
+                #     print(g1g2_tr.max(),file=None)
 
                 c = np.multiply(g1g2_tr,S)
 
-                if i%50000==0:
-                    print(c[0:10],file=None)
-                    print(c.max(),file=None)
+                # if i%50000==0:
+                #     print(c[0:10],file=None)
+                #     print(c.max(),file=None)
 
                 if kernelrun:
                     
@@ -476,8 +477,8 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
             
             
         except:
-            print('Could not determine correlation for: ')
-            print(cp)
+            print('Could not determine correlation for: '+cp+\
+                '\nCheck if wavefield .h5 file is available.')
             continue
             
         if os.path.exists(corr) and not kernelrun:

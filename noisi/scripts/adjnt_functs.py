@@ -22,10 +22,11 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
         sig_a = corr_s.data * win[::-1]
         E_plus = np.trapz(np.power(sig_c,2))*corr_s.stats.delta
         E_minus = np.trapz(np.power(sig_a,2))*corr_s.stats.delta
-        u_plus = np.multiply(sig_c,win)
+        u_plus = np.multiply(sig_c,win) # to win**2
         u_minus = np.multiply(sig_a,win[::-1])
         #adjt_src = 2./pi * (msr_s-msr_o) * (u_plus / E_plus - u_minus / E_minus)
-        adjt_src = 2./pi * (u_plus / E_plus - u_minus / E_minus)
+        # I don't know where that factor 2 came from. Not consistent with new derivation of kernels
+        adjt_src = 1./pi * (u_plus / E_plus - u_minus / E_minus)
         success = True
     else:
         adjt_src = win-win+np.nan
@@ -33,8 +34,7 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
     
 def energy(corr_o,corr_s,g_speed,window_params):
     
-    #msr_o = rm.energy(corr_o,g_speed,window_params)
-    #msr_s = rm.energy(corr_s,g_speed,window_params)
+    
     success = False
     
     window = wn.get_window(corr_o.stats,g_speed,window_params)
@@ -45,8 +45,8 @@ def energy(corr_o,corr_s,g_speed,window_params):
         win = window[0][::-1]
 
     if window[2]:    
-        u = np.multiply(win,corr_s.data)
-        #adjt_src = 2./(msr_s-msr_o) * u
+        u = 2 * np.multiply(np.power(win,2),corr_s.data)
+        
         adjt_src = u
         success = True
     else:

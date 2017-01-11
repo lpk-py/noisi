@@ -65,6 +65,7 @@ def paths_input(cp,source_conf,step,kernelrun):
                      'step_'+str(step),
                      'adjt',"{}--{}.sac".format(sta1,sta2))
         adjt = glob(adjt)[0]
+        
     except IndexError and kernelrun:
         print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
             # ToDo: this is too horrible, please find another solution.
@@ -196,7 +197,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 # if calculating kernel, the spectrum is location independent.
                 S = nsrc.get_spect(i)
 
-                if S.sum() == 0.: # The spectrum has 0 phase.
+                if S.sum() == 0.: # The spectrum has 0 phase anyway
                     continue
 
                

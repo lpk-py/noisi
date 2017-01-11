@@ -26,6 +26,7 @@ sourcepath = '.'
 # geography - Add anything else than a homogeneous distribution by setting to "True" the following:
 only_ocean = False
 gaussian_blobs = False
+no_background = False
 params_gaussian_blobs = [{'center':(0.,0.),'sigma_radius_m':500000.,'rel_weight':2.}]
 
 #spectra
@@ -138,6 +139,9 @@ if gaussian_blobs:
     for blob in params_gaussian_blobs:
         weights1[i] = blob['rel_weight']
         i+=1
+if no_background:
+    weights1[0] = 0.
+    
 #print weights1
 # spectra --- much harder to assign manually, since we need weights for every location. just assigning ones.\n",
 weights2 = np.ones((np.shape(grd)[-1],np.shape(basis2)[0]))

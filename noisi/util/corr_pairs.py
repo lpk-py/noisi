@@ -31,7 +31,7 @@ def define_correlationpairs(proj_dir,auto_corr=False,only_observed=True,channel=
             if '' in [sta_0,sta]:
                 continue
             corr_pairs.append([sta_0,sta])
-    return corr_pairs
+    return corr_pairs.sort()
 
 
 def rem_no_obs(stapairs,source_conf,directory,ignore_network=True):

@@ -7,7 +7,7 @@ from math import isnan
 from noisi.util.plot import plot_grid
 
 
-def assemble_descent_dir(source_model,step,snr_min,n_min,save_all=False):
+def assemble_ascent_dir(source_model,step,snr_min,n_min,save_all=False):
 
 
 

@@ -15,6 +15,7 @@ def define_correlationpairs(proj_dir,auto_corr=False,only_observed=True,channel=
     stations = open(os.path.join(proj_dir,'stations.txt'))
     
     stations = stations.read().split('\n')
+    stations.sort()
     i = 0
     corr_pairs = []
     
@@ -31,7 +32,8 @@ def define_correlationpairs(proj_dir,auto_corr=False,only_observed=True,channel=
             if '' in [sta_0,sta]:
                 continue
             corr_pairs.append([sta_0,sta])
-    return corr_pairs.sort()
+
+    return corr_pairs
 
 
 def rem_no_obs(stapairs,source_conf,directory,ignore_network=True):

@@ -88,11 +88,12 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     #draw station locations
     for sta in stations:
         m.plot(sta[0],sta[1],'kv',markersize=10,latlon=True)
-    plt.show()
+    
     if outfile is None:
         plt.show()
     else:
         plt.savefig(outfile,format='png')
+        plt.close()
     
 def plot_sourcegrid(gridpoints,**kwargs):
 

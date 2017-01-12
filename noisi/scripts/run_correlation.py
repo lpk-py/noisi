@@ -59,17 +59,19 @@ def paths_input(cp,source_conf,step,kernelrun):
 
     # Adjoint source
     
+    if kernelrun:
+        try:
+            adjt = os.path.join(source_conf['source_path'],
+                         'step_'+str(step),
+                         'adjt',"{}--{}.sac".format(sta1,sta2))
+            adjt = glob(adjt)[0]
 
-    try:
-        adjt = os.path.join(source_conf['source_path'],
-                     'step_'+str(step),
-                     'adjt',"{}--{}.sac".format(sta1,sta2))
-        adjt = glob(adjt)[0]
-        
-    except IndexError and kernelrun:
-        print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
-            # ToDo: this is too horrible, please find another solution.
-        adjt = '-'
+        except IndexError:
+            print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
+                # ToDo: this is too horrible, please find another solution.
+            adjt = '-'
+    else:
+        adjt = ''
 
     
     return(wf1,wf2,nsrc,adjt)
@@ -428,6 +430,7 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
     p = define_correlationpairs(source_config['project_path'])
+    print(p)
     
     # Remove pairs for which no observation is available
     if obs_only:
@@ -477,8 +480,8 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
             
             
         except:
-            print('Could not determine correlation for: '+cp+\
-                '\nCheck if wavefield .h5 file is available.')
+            print('Could not determine correlation for: %s\
+             \nCheck if wavefield .h5 file is available.' %cp)
             continue
             
         if os.path.exists(corr) and not kernelrun:

@@ -14,13 +14,15 @@ from noisi.my_classes.noisesource import NoiseSource
 source_model = sys.argv[1]
 oldstep = sys.argv[2]
 grad_file = sys.argv[3]
+grad_old = sys.argv[4]
+update_mode = 'conjgrad'# steepest, conjgrad
 min_snr = 5.0
 min_stck = 320.
 nr_msr = 300
-step_length = None
+step_length = 
 mode = 'max' # 'max', 'random'
 # Give as part per hundred, e.g 0.1 for 10%
-perc_step_length = 0.1
+perc_step_length = None
 # include those data points in the test which are at or above this
 # fraction of maximum misfit:
 perc_of_max_misfit = 0.6666
@@ -32,7 +34,7 @@ prepare_test_steplength = True
 ####################################
 
 
-def _update_steepestdesc(old_model,
+def _update_steepestdesc(model,
 	neg_grad,
 	step_length=None,
 	perc_step_length=None,
@@ -44,10 +46,10 @@ def _update_steepestdesc(old_model,
 			be specified.')
 
 # just in case:
-	os.system('cp {} {}'.format(old_model,old_model+'.bak'))
+	os.system('cp {} {}'.format(model,model+'.bak'))
 # This model will be overwritten, need to be careful with that
 # read the model
-	src_model = NoiseSource(old_model)
+	src_model = NoiseSource(model)
 
 # smooth the model
 	if smooth:
@@ -72,6 +74,40 @@ def _update_steepestdesc(old_model,
 	src_model.model.close()
 
 	return()
+
+def _update_conjugategrad(
+	model,
+	neg_grad,
+	old_grad,
+	old_upd,
+	updatename,
+	step_length
+	):
+# just in case:
+	os.system('cp {} {}'.format(model,model+'.bak'))
+# This model will be overwritten, need to be careful with that
+# read the model
+	src_model = NoiseSource(model)
+
+	# determine beta
+	beta = np.power(np.linalg.norm(-1.*neg_grad,ord=2),2)\
+	 / np.power(np.linalg.norm(old_grad,ord=2),2)
+
+
+	upd = neg_grad + beta * old_upd
+
+
+	# save the update so it can be used to determine the next step
+	np.save(updatename,upd)
+
+	src_model.model['distr_basis'][:] += step_length * upd
+	
+	if src_model.model['distr_basis'][:].min() < 0.:
+		raise ValueError('Step length is too large: Source model turns negative.')
+
+	src_model.model.close()
+	return()
+
 
 
 
@@ -201,10 +237,22 @@ else:
 # This would be the point to project to some lovely basis functions..
 grad = grad_file
 neg_grad = -1. * np.load(grad)
+old_grad = np.load(grad_old)
 new_sourcemodel = os.path.join(newdir,'starting_model.h5')
+new_update = os.path.join(newdir,'grad','update.npy')
+old_upd = os.path.join(datadir,'grad','update.npy')
+if not os.path.exists(old_upd):
+	old_upd = -1. * old_grad.copy()
+else:
+	old_upd = np.load(old_upd)
 
+if update_mode == 'steepest':
 
-_update_steepestdesc(new_sourcemodel,neg_grad,step_length=step_length,
+	_update_steepestdesc(new_sourcemodel,neg_grad,step_length=step_length,
 	perc_step_length=perc_step_length,project=False,smooth=False)
+
+elif update_mode == 'conjgrad':
+	_update_conjugategrad(new_sourcemodel,neg_grad,old_grad,
+	old_upd,new_update,step_length)
 # (outside of this script) forward model selected correlations
 # (outside of this script) evaluate misfit for selected correlations

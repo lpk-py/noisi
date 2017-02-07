@@ -1,7 +1,7 @@
 import numpy as np
 import h5py
 
-from scipy.stats import linregress
+
 import os
 from noisi.util.plot import plot_grid
 
@@ -27,13 +27,17 @@ class NoiseSource(object):
             self.freq = self.model['frequencies']
              
             # Presumably, these arrays are small and will be used very often --> good to have in memory.
-            self.distr_basis = self.model['distr_basis'][:]
+            #self.distr_basis = self.model['distr_basis'][:]
+            self.geogr_weights = self.model['geogr_weights'][:]
             self.spect_basis = self.model['spect_basis'][:]
-            self.distr_weights = self.model['distr_weights'][:]
-            self.spect_weights = self.model['spect_weights'][:]
+            self.n_spect_bases = self.spect_basis.shape[0]
+            #self.distr_weights = self.model['distr_weights'][:]
+            #self.spect_weights = self.model['spect_weights'][:]
             
-            # The 'max amplitude' is probably needed often, and the distribution should not be too heavy to hold in memory, it has dimension 1 x number of sources
-            self.source_distribution = self.expand_distr()
+            # The 'max amplitude' is probably needed often, 
+            #the distribution should not be too heavy to hold in memory
+            # it has dimension 1 x number of sources
+            # self.source_distribution = self.expand_distr()
             
         except IOError:
             msg = 'Unable to open model file '+model
@@ -53,20 +57,24 @@ class NoiseSource(object):
     def project_gridded(self):
         pass
 
-    def expand_distr(self):
-        return np.dot(self.distr_weights,self.distr_basis)
+    #def expand_distr(self):
+    #    return np.dot(self.distr_weights,self.distr_basis)
         
 
     def get_spect(self,iloc):
         # return one spectrum in location with index iloc
         # The reason this function is for one spectrum only is that the entire gridded matrix of spectra by location is most probably pretty big.
-        spect = np.dot(self.spect_weights[iloc],self.spect_basis) 
-        return self.source_distribution[iloc] * spect
+        #spect = np.dot(self.spect_weights[iloc],self.spect_basis) 
+        #return self.source_distribution[iloc] * spect
+        return np.dot(self.geogr_weights[:,iloc],self.spect_basis)
+        
     
+    def get_spect_basis(ibasis):
+        return self.spect_basis[ibasis,:]
     
     def plot(self,**options):
         # plot the distribution
-        plot_grid(self.src_loc[0],self.src_loc[1],self.distr_basis[0],**options)
+        plot_grid(self.src_loc[0],self.src_loc[1],self.geogr_weights,**options)
 
     
     

@@ -19,7 +19,7 @@ from noisi.util.windows import my_centered, zero_buddy
 from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs, rem_no_obs
 import matplotlib.pyplot as plt
 #ToDo: put in the possibility to run on mixed channel pairs
-def paths_input(cp,source_conf,step,kernelrun):
+def paths_input(cp,source_conf,step):
     
     inf1 = cp[0].split()
     inf2 = cp[1].split()
@@ -45,36 +45,36 @@ def paths_input(cp,source_conf,step,kernelrun):
     
     
     # Starting model for the noise source
-    if kernelrun:
-        # this is a bit of an odd construction. The base model contains no spatial weights if the gradient is for spatial weights.
-        # If even the spectral weights get updated, then it should not even contain spectral weights. 
-        # But so far, so good.
-        nsrc = os.path.join(source_conf['project_path'],
-                     source_conf['source_name'],'step_'+str(step),
-                     'base_model.h5')
-    else:
-        nsrc = os.path.join(source_conf['project_path'],
-                     source_conf['source_name'],'step_'+str(step),
-                     'starting_model.h5')
+    # if kernelrun:
+    #     # this is a bit of an odd construction. The base model contains no spatial weights if the gradient is for spatial weights.
+    #     # If even the spectral weights get updated, then it should not even contain spectral weights. 
+    #     # But so far, so good.
+    #     nsrc = os.path.join(source_conf['project_path'],
+    #                  source_conf['source_name'],'step_'+str(step),
+    #                  'base_model.h5')
+    # else:
+    nsrc = os.path.join(source_conf['project_path'],
+                 source_conf['source_name'],'step_'+str(step),
+                 'starting_model_new.h5')
 
     # Adjoint source
     
-    if kernelrun:
-        try:
-            adjt = os.path.join(source_conf['source_path'],
-                         'step_'+str(step),
-                         'adjt',"{}--{}.sac".format(sta1,sta2))
-            adjt = glob(adjt)[0]
+    # if kernelrun:
+    #     try:
+    #         adjt = os.path.join(source_conf['source_path'],
+    #                      'step_'+str(step),
+    #                      'adjt',"{}--{}.sac".format(sta1,sta2))
+    #         adjt = glob(adjt)[0]
 
-        except IndexError:
-            print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
-                # ToDo: this is too horrible, please find another solution.
-            adjt = '-'
-    else:
-        adjt = ''
+    #     except IndexError:
+    #         print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
+    #             # ToDo: this is too horrible, please find another solution.
+    #         adjt = '-'
+    # else:
+    #     adjt = ''
 
     
-    return(wf1,wf2,nsrc,adjt)
+    return(wf1,wf2,nsrc)#,adjt)
     
     
 def paths_output(cp,source_conf,step):
@@ -97,10 +97,10 @@ def paths_output(cp,source_conf,step):
     # Correlation file
     #corr_name = "{}--{}.h5".format(sta1,sta2)
      # Kernel (without measurement) file
-    kern_name = "{}--{}.npy".format(sta1,sta2)
-    kern_name = os.path.join(source_conf['source_path'],
-        'step_'+str(step), 'kern',
-        kern_name)
+    # kern_name = "{}--{}.npy".format(sta1,sta2)
+    # kern_name = os.path.join(source_conf['source_path'],
+    #     'step_'+str(step), 'kern',
+    #     kern_name)
 
    
     
@@ -122,7 +122,7 @@ def paths_output(cp,source_conf,step):
     corr_trace_name =  os.path.join(source_conf['source_path'],
         'step_'+str(step),'corr',
         corr_trace_name)   
-    return (kern_name,corr_trace_name)
+    return (corr_trace_name)
     
 def get_ns(wf1,source_conf):
     
@@ -150,9 +150,11 @@ def get_ns(wf1,source_conf):
     
 
 
-def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
-    src,source_conf,kernelrun):
-    
+# def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
+#     src,source_conf,kernelrun):
+
+def g1g2_corr(wf1,wf2,corr_file,
+    src,source_conf):
     #ToDo: Take care of saving metainformation
     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
     #ToDo: check whether to include autocorrs from user (now hardcoded off)
@@ -178,17 +180,19 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
 
         with NoiseSource(src) as nsrc:
 
+
             correlation = np.zeros(n_corr)
             
-            if kernelrun:
-                
+            # if kernelrun: 
+            #     n_bases = nsrc.n_spect_bases
+            #     print("Number of spectral basis functions: {}".format(n_bases))
                 #if not os.path.exists(adjt):
                 #    print('Adjoint source %s not found, skipping kernel.')
                 #    return()
 
-                kern = np.zeros(wf1.stats['ntraces'])
-                f = read(adjt)[0]
-                f.data = my_centered(f.data,n_corr)
+                # kern = np.zeros(wf1.stats['ntraces'],n_bases)
+                # f = read(adjt)[0]
+                # f.data = my_centered(f.data,n_corr)
                 
             # Loop over source locations
             #with click.progressbar(range(wf1.stats['ntraces']),\
@@ -199,8 +203,8 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 # if calculating kernel, the spectrum is location independent.
                 S = nsrc.get_spect(i)
 
-                if S.sum() == 0.: # The spectrum has 0 phase anyway
-                    continue
+                # if S.sum() == 0.: # The spectrum has 0 phase anyway
+                #     continue
 
                
                 s1 = np.ascontiguousarray(wf1.data[i,:]*taper)
@@ -221,19 +225,20 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 #     print(c[0:10],file=None)
                 #     print(c.max(),file=None)
 
-                if kernelrun:
+                # if kernelrun:
                     
-                    corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                    ##if i%50000 == 0:
-                    #    ##print(corr_temp[0:10],file=None)
-                        #print(corr_temp.max(),file=None)
-                    # A Riemann sum 
-                    kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
+                #     corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                #     ##if i%50000 == 0:
+                #     #    ##print(corr_temp[0:10],file=None)
+                #         #print(corr_temp.max(),file=None)
+                #     # A Riemann sum 
+                #     kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
                     
                 
-                else:
+                # else:
                                     
-                    correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                    # correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+                correlation += my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
                 
                 if i%50000 == 0:
                     print("Finished {} source locations.".format(i))
@@ -241,128 +246,215 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
 
         
 
-        if kernelrun:
-            np.save(kernel,kern) 
+        # if kernelrun:
+        #     np.save(kernel,kern) 
 
-        else:
-            trace = Trace()
-            trace.stats.sampling_rate = wf1.stats['Fs']
-            trace.data = correlation
-            trace.write(filename=corr_file,format='SAC')
-            
+        # else:
+        #     trace = Trace()
+        #     trace.stats.sampling_rate = wf1.stats['Fs']
+        #     trace.data = correlation
+        #     trace.write(filename=corr_file,format='SAC')
+        trace = Trace()
+        trace.stats.sampling_rate = wf1.stats['Fs']
+        trace.data = correlation
+        trace.write(filename=corr_file,format='SAC')
         
+def run_corr(source_configfile,step,steplengthrun=False):
 
-def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
-    src,source_conf,scale=1.0):
+    step = int(step)
+
+
+    #ToDo think about that configuration decorator
+    source_config=json.load(open(source_configfile))
+    obs_only = source_config['model_observed_only']
+
+    #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
-    #ToDo: Take care of saving metainformation
-    #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
-    #ToDo: check whether to include autocorrs from user (now hardcoded off)
-    #ToDo: Parallel loop(s)
-    #ToDo tests
+    p = define_correlationpairs(source_config['project_path'])
+    print(p)
     
-    ntime, n, n_corr = get_ns(wf1,source_conf)
+    # Remove pairs for which no observation is available
+    if obs_only:
+        directory = os.path.join(source_config['source_path'],'observed_correlations')
+        p = rem_no_obs(p,source_config,directory=directory)
+    if steplengthrun:
+        directory = os.path.join(source_config['source_path'],
+            'step_'+str(step),'obs_slt')
+        p = rem_no_obs(p,source_config,directory=directory)
+        
+
+    # Remove pairs that have already been calculated
+    p = rem_fin_prs(p,source_config,step,kernelrun=False)
+
+    # for each pair:
+    
+    #TRY
+    # get the paths to the wavefield files and the noise source file and the output (preliminary correlation and or integrated correlation)
+    # is the 'preliminary run' necessary?
+    # combine the preliminary correlation with the source spectrum
+    #EXCEPT
+    # - files not found?
+
+
+    # simple embarrassingly parallel run:
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
+
+    # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 
+    # this will prevent that many processes try to access the same hdf5 file all at once.
+    num_pairs = int( round(float(len(p))/float(size)) )
+    p_p = p[ rank*num_pairs : rank*num_pairs + num_pairs] 
+    
+    print('Rank number %g' %rank)
+    print('working on pair nr. %g to %g of %g.' %(rank*num_pairs,rank*num_pairs+num_pairs,len(p)))
+    
+    for cp in p_p:
+        
+        try:
+            wf1,wf2,src = paths_input(cp,source_config,step)
+            print(wf1,wf2,src)
+        
+            corr = paths_output(cp,source_config,step)
+            
+            
+        except:
+            print('Could not determine correlation for: %s\
+             \nCheck if wavefield .h5 file is available.' %cp)
+            continue
+            
+        if os.path.exists(corr): #and not kernelrun:
+            continue
+
+        # if os.path.exists(kernel) and kernelrun:
+        #     continue
+
+        # if not os.path.exists(adjt) and kernelrun:
+        #     print('No adjoint source found for:')
+        #     print(os.path.basename(adjt))
+        #     continue
+
+        
+            #if int(step) == 0:
+               # if source_config['ktype'] == 'td':
+
+                    #print('Time domain preliminary kernel...')
+        #g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
+        g1g2_corr(wf1,wf2,corr,src,source_config)
+       
+# def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
+#     src,source_conf,scale=1.0):
+    
+#     #ToDo: Take care of saving metainformation
+#     #ToDo: Think about how to manage different types of sources (numpy array vs. get from configuration -- i.e. read source from file as option)
+#     #ToDo: check whether to include autocorrs from user (now hardcoded off)
+#     #ToDo: Parallel loop(s)
+#     #ToDo tests
+    
+#     ntime, n, n_corr = get_ns(wf1,source_conf)
     
     
-    taper = cosine_taper(ntime,p=0.05)
+#     taper = cosine_taper(ntime,p=0.05)
 
 
-    with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
+#     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
         
         
-        if wf1.stats['Fs'] != wf2.stats['Fs']:
-            msg = 'Sampling rates of synthetic green\'s functions must match.'
-            raise ValueError(msg)
+#         if wf1.stats['Fs'] != wf2.stats['Fs']:
+#             msg = 'Sampling rates of synthetic green\'s functions must match.'
+#             raise ValueError(msg)
         
-        # initialize new hdf5 files for correlation and green's function correlation
-        #with wf1.copy_setup(corr_file,nt=n_corr) as correl, NoiseSource(src) as nsrc:
-        #with wf1.copy_setup(corr_file,nt=n_corr) as correl:
+#         # initialize new hdf5 files for correlation and green's function correlation
+#         #with wf1.copy_setup(corr_file,nt=n_corr) as correl, NoiseSource(src) as nsrc:
+#         #with wf1.copy_setup(corr_file,nt=n_corr) as correl:
         
 
-        with NoiseSource(src) as nsrc:
+#         with NoiseSource(src) as nsrc:
 
-            correlation = np.zeros(n_corr)
+#             correlation = np.zeros(n_corr)
             
 
-            kern = np.zeros(wf1.stats['ntraces'])
+#             kern = np.zeros(wf1.stats['ntraces'])
 
-            # Try to use a trick: Use causal and acausal part of f separately.
-            f = read(adjt)[0]
-            f.data = my_centered(f.data,n_corr)
+#             # Try to use a trick: Use causal and acausal part of f separately.
+#             f = read(adjt)[0]
+#             f.data = my_centered(f.data,n_corr)
             
-            n_acausal_samples = (f.stats.npts-1)/2
-            specf = np.fft.rfft(f[n_acausal_samples:],n)
+#             n_acausal_samples = (f.stats.npts-1)/2
+#             specf = np.fft.rfft(f[n_acausal_samples:],n)
 
-            # Loop over source locations
-            #with click.progressbar(range(wf1.stats['ntraces']),\
-            #label='Correlating...' ) as ind:
-            for i in range(wf1.stats['ntraces']):
+#             # Loop over source locations
+#             #with click.progressbar(range(wf1.stats['ntraces']),\
+#             #label='Correlating...' ) as ind:
+#             for i in range(wf1.stats['ntraces']):
 
-                #print(i)
-                s1 = np.ascontiguousarray(wf1.data[i,:]*taper) * scale
-                #print(s1.sum())
-                spec1 = np.fft.rfft(s1,n)
-                #print(spec1.sum())
-                T = np.multiply(np.conj(spec1),nsrc.get_spect(i))
-                # plt.plot(np.abs(spec1)/np.max(np.abs(spec1)))
-                # plt.plot(np.abs(T)/np.max(np.abs(T)))
-                # plt.show()
+#                 #print(i)
+#                 s1 = np.ascontiguousarray(wf1.data[i,:]*taper) * scale
+#                 #print(s1.sum())
+#                 spec1 = np.fft.rfft(s1,n)
+#                 #print(spec1.sum())
+#                 T = np.multiply(np.conj(spec1),nsrc.get_spect(i))
+#                 # plt.plot(np.abs(spec1)/np.max(np.abs(spec1)))
+#                 # plt.plot(np.abs(T)/np.max(np.abs(T)))
+#                 # plt.show()
 
-                 # it would be cleaner to use ifftshift here!
-                T = np.fft.ifftshift(np.fft.irfft(T,n))[0:len(s1)]#[-len(s1):]
-                # if i in [1,2,3,4,5]:
-                #     plt.plot(T[::-1]/np.max(np.abs(T)))
-                #     plt.plot(s1/np.max(np.abs(s1)),'--')
-                #     plt.show()                
-                # Get s2 in the shape of f
-                # we need to add half of the length of f before G to replace the
-                # acausal part that G does not have to start with:
+#                  # it would be cleaner to use ifftshift here!
+#                 T = np.fft.ifftshift(np.fft.irfft(T,n))[0:len(s1)]#[-len(s1):]
+#                 # if i in [1,2,3,4,5]:
+#                 #     plt.plot(T[::-1]/np.max(np.abs(T)))
+#                 #     plt.plot(s1/np.max(np.abs(s1)),'--')
+#                 #     plt.show()                
+#                 # Get s2 in the shape of f
+#                 # we need to add half of the length of f before G to replace the
+#                 # acausal part that G does not have to start with:
                 
-                #s2 = np.zeros(n)
-                s2 = np.ascontiguousarray(wf2.data[i,:]*taper) * scale
-                #print(s2.sum())
-                #s2[n_acausal_samples:n_acausal_samples+ntime] = s2_caus
-                spec2 = np.fft.rfft(s2,n)
-                # plt.plot(s2_caus/np.max(np.abs(s2_caus)))
-                # plt.plot(f.data/np.max(np.abs(f.data)))
-                # plt.plot(s2/np.max(np.abs(s2)))
-                # plt.plot(n_acausal_samples,0.5,'rd')
+#                 #s2 = np.zeros(n)
+#                 s2 = np.ascontiguousarray(wf2.data[i,:]*taper) * scale
+#                 #print(s2.sum())
+#                 #s2[n_acausal_samples:n_acausal_samples+ntime] = s2_caus
+#                 spec2 = np.fft.rfft(s2,n)
+#                 # plt.plot(s2_caus/np.max(np.abs(s2_caus)))
+#                 # plt.plot(f.data/np.max(np.abs(f.data)))
+#                 # plt.plot(s2/np.max(np.abs(s2)))
+#                 # plt.plot(n_acausal_samples,0.5,'rd')
 
-                # plt.show()
+#                 # plt.show()
 
-                # transform both f and s2 to fourier d 
-                # (again, zeropadding but just to avoid circular convolution)
+#                 # transform both f and s2 to fourier d 
+#                 # (again, zeropadding but just to avoid circular convolution)
                 
                 
                 
-                # plt.plot(np.abs(spec2)/np.max(np.abs(spec2)))
-                # plt.plot(np.abs(specf)/np.max(np.abs(specf)))
-                # plt.show()
-                g2f_tr = np.multiply(np.conj(spec2),specf)
-                #print(specf.sum())
-                #plt.plot(n_acausal_samples,0.5,'rd')
-                #plt.plot(n,0.5,'gd')
+#                 # plt.plot(np.abs(spec2)/np.max(np.abs(spec2)))
+#                 # plt.plot(np.abs(specf)/np.max(np.abs(specf)))
+#                 # plt.show()
+#                 g2f_tr = np.multiply(np.conj(spec2),specf)
+#                 #print(specf.sum())
+#                 #plt.plot(n_acausal_samples,0.5,'rd')
+#                 #plt.plot(n,0.5,'gd')
 
-                # it would be cleaner to use ifftshift here!
-                u_dagger = np.fft.ifftshift(np.fft.irfft(g2f_tr,n))[0:len(s1)]#[-len(s1):]
-                # plt.plot(u_dagger/np.max(np.abs(u_dagger)))
-                # plt.plot(T/np.max(np.abs(T)))
+#                 # it would be cleaner to use ifftshift here!
+#                 u_dagger = np.fft.ifftshift(np.fft.irfft(g2f_tr,n))[0:len(s1)]#[-len(s1):]
+#                 # plt.plot(u_dagger/np.max(np.abs(u_dagger)))
+#                 # plt.plot(T/np.max(np.abs(T)))
 
-                # plt.show()
+#                 # plt.show()
 
             
-                # The frequency spectrum of the noise source is included here
-               ## corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
-                # A Riemann sum -- one could actually build in a more fancy integration here
-                #print(f.stats.delta)
-                kern[i] = np.dot(u_dagger,T) * f.stats.delta
-                #print(kern[i])
+#                 # The frequency spectrum of the noise source is included here
+#                ## corr_temp = my_centered(np.fft.ifftshift(np.fft.irfft(c,n)),n_corr)
+#                 # A Riemann sum -- one could actually build in a more fancy integration here
+#                 #print(f.stats.delta)
+#                 kern[i] = np.dot(u_dagger,T) * f.stats.delta
+#                 #print(kern[i])
 
-                if i%50000 == 0:
-                    print("Finished {} source locations.".format(i))
+#                 if i%50000 == 0:
+#                     print("Finished {} source locations.".format(i))
 
-                #np.save(kernel,kern) 
-            return(kern)
+#                 #np.save(kernel,kern) 
+#             return(kern)
 
             
 
@@ -418,109 +510,7 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
 
 
 
-def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
 
-    step = int(step)
-
-
-    #ToDo think about that configuration decorator
-    source_config=json.load(open(source_configfile))
-    obs_only = source_config['model_observed_only']
-
-    #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
-    
-    p = define_correlationpairs(source_config['project_path'])
-    print(p)
-    
-    # Remove pairs for which no observation is available
-    if obs_only:
-        directory = os.path.join(source_config['source_path'],'observed_correlations')
-        p = rem_no_obs(p,source_config,directory=directory)
-    if steplengthrun:
-        directory = os.path.join(source_config['source_path'],
-            'step_'+str(step),'obs_slt')
-        p = rem_no_obs(p,source_config,directory=directory)
-        
-
-    # Remove pairs that have already been calculated
-    p = rem_fin_prs(p,source_config,step,kernelrun)
-
-    # for each pair:
-    
-    #TRY
-    # get the paths to the wavefield files and the noise source file and the output (preliminary correlation and or integrated correlation)
-    # is the 'preliminary run' necessary?
-    # combine the preliminary correlation with the source spectrum
-    #EXCEPT
-    # - files not found?
-
-
-    # simple embarrassingly parallel run:
-
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
-
-    # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 
-    # this will prevent that many processes try to access the same hdf5 file all at once.
-    num_pairs = int( round(float(len(p))/float(size)) )
-    p_p = p[ rank*num_pairs : rank*num_pairs + num_pairs] 
-    
-    print('Rank number %g' %rank)
-    print('working on pair nr. %g to %g of %g.' %(rank*num_pairs,rank*num_pairs+num_pairs,len(p)))
-    
-    for cp in p_p:
-        
-        try:
-            wf1,wf2,src,adjt = paths_input(cp,source_config,step,kernelrun)
-            print(wf1,wf2,src)
-        
-            kernel,corr = paths_output(cp,source_config,step)
-            
-            
-        except:
-            print('Could not determine correlation for: %s\
-             \nCheck if wavefield .h5 file is available.' %cp)
-            continue
-            
-        if os.path.exists(corr) and not kernelrun:
-            continue
-
-        if os.path.exists(kernel) and kernelrun:
-            continue
-
-        if not os.path.exists(adjt) and kernelrun:
-            print('No adjoint source found for:')
-            print(os.path.basename(adjt))
-            continue
-
-        
-            #if int(step) == 0:
-               # if source_config['ktype'] == 'td':
-
-                    #print('Time domain preliminary kernel...')
-        g1g2_corr(wf1,wf2,corr,kernel,adjt,src,source_config,kernelrun=kernelrun)
-
-            #     elif source_config['ktype'] == 'fd':
-            #         print('Frequency domain preliminary kernel...')
-            #         g1g2_corr_fd(wf1,wf2,c,c_int,src,source_config)
-            # #else:
-            #     corr(wf1,wf2,c,c_int,src,source_config,kernelrun=kernelrun)
-        #
-        #corr(c,src,c_int)
-                
-            
-            
-        #except:
-        #    print('Could not determine correlation for: ')
-        ##    print(cp)
-                
-                #nsrc = os.path.join(source_conf['project_path'],
-                #    source_conf['source_name'],
-                #    'sourcemodel.h5')
-                #
-                
                 
                 
 # def g1g2_corr_fd(wf1,wf2,corr_file,corr_int_file,src,source_conf):

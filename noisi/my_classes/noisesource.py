@@ -69,8 +69,8 @@ class NoiseSource(object):
         return np.dot(self.geogr_weights[:,iloc],self.spect_basis)
         
     
-    def get_spect_basis(ibasis):
-        return self.spect_basis[ibasis,:]
+    #def get_spect_basis(ibasis):
+    #    return self.spect_basis[ibasis,:]
     
     def plot(self,**options):
         # plot the distribution

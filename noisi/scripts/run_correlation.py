@@ -163,7 +163,7 @@ def g1g2_corr(wf1,wf2,corr_file,
     
     ntime, n, n_corr = get_ns(wf1,source_conf)
     
-    
+    print(ntime,n,n_corr)
     taper = cosine_taper(ntime,p=0.05)
     
     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:

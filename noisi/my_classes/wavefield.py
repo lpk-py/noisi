@@ -271,6 +271,33 @@ class WaveField(object):
                 self.file.create_dataset('stats',data=(0,))
             for (key,value) in self.stats.iteritems():
                 self.file['stats'].attrs[key] = value
+
+
+    def get_ns(self,max_lag):
+    
+        # Little convenience function that tells how many time steps
+        # and how much zero padding are needed
+
+        # Nr of time steps in traces
+        nt = int(self.stats['nt'])
+        Fs = round(self.stats['Fs'],8)
+
+        
+        
+        # Necessary length of zero padding for carrying out frequency domain correlations/convolutions
+        n = next_fast_len(2*nt-1)     
+        
+        # Number of time steps for synthetic correlation
+        n_lag = int(max_lag * Fs)
+        if nt - 2*n_lag <= 0:
+            click.secho('Resetting maximum lag to %g seconds: \
+                Synthetics are too\
+                short for a maximum lag of %g seconds.' %(nt//2/Fs,n_lag/Fs))
+            n_lag = nt // 2
+            
+        n_corr = 2*n_lag + 1
+        
+        return nt,n,n_corr
             
             #print(self.file['stats'])
             #self.file.flush()

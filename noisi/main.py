@@ -8,6 +8,7 @@ import time
 
 from noisi.scripts.source_grid import setup_sourcegrid as setup_sgrid
 from noisi.scripts.run_correlation import run_corr
+from noisi.scripts.run_kernel import run_kernel
 from noisi.util.prepare_sem_input import prepare_specfem_input
 from noisi.scripts.run_measurement import run_measurement
 from noisi.scripts.run_adjointsrcs import run_adjointsrcs
@@ -183,7 +184,7 @@ def measurement(source_model,step,ignore_network,step_test):
 
 def kernel(source_model,step):
     source_model = os.path.join(source_model,'source_config.json')
-    run_corr(source_model,step,kernelrun=True)
+    run_kernel(source_model,step)
 
 
 @run.command(help='Calculate few correlations for step length test.')

@@ -106,7 +106,7 @@ def energy(correlation,params):
     if window[2]:
         E = np.trapz((correlation.data * win)**2)
         msr = E
-        if params['plot']:
+        if params['window_plot_measurements']:
             plot_window(correlation,win,E)
     else:
         msr = np.nan
@@ -121,7 +121,7 @@ def log_en_ratio(correlation,params):
         E_plus = np.trapz((correlation.data * win)**2) * delta
         E_minus = np.trapz((correlation.data * win[::-1])**2) * delta
         msr = log(E_plus/(E_minus+np.finfo(E_minus).tiny))
-        if params['plot']:
+        if params['window_plot_measurements']:
             plot_window(correlation,win,msr)
     else:
         msr = np.nan

@@ -134,7 +134,7 @@ def snratio(correlation,params):
     window = get_window(correlation.stats,params)
     
 
-    if not window_params['causal']:
+    if not params['causal']:
         win_s = window[0][::-1]
         win_n = window[1][::-1]
     else:

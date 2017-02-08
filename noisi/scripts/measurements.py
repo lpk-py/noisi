@@ -99,7 +99,7 @@ def windowed_waveform(correlation,params):
 def energy(correlation,params):
     
     window = get_window(correlation.stats,params)
-    if params['causal_side']:
+    if params['causal']:
         win = window[0]
     else:
         win = window[0][::-1]

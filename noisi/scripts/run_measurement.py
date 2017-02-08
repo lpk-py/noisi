@@ -71,7 +71,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,param
     measurements = pd.DataFrame(columns=columns)
     
     _options_ac = copy.deepcopy(params)
-    _options_ac['causal_side'] = not(params['causal_side'])
+    _options_ac['causal'] = not(params['causal'])
     
     
     if files == []:

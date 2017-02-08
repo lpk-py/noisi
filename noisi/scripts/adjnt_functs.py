@@ -45,7 +45,7 @@ def energy(corr_o,corr_s,m_params):
     
     window = wn.get_window(corr_o.stats,m_params)
     
-    if m_params['causal_side']:
+    if m_params['causal']:
         win = window[0]
     else:
         win = window[0][::-1]

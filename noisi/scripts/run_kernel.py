@@ -175,7 +175,7 @@ def g1g2_kern_simple(wf1,wf2,kernel,adjt,
                # print('Adjoint source %s not found, skipping kernel.')
                # return()
 
-            kern = np.zeros(wf1.stats['ntraces'],n_bases)
+            kern = np.zeros((wf1.stats['ntraces'],n_bases))
             
                 
             spectral_basis = nsrc.spect_basis

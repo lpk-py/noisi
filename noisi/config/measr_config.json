@@ -1,4 +1,4 @@
-{
+[{
     "date_created": "",
     "mtype":"",
 	"g_speed":3000,
@@ -11,4 +11,4 @@
 	"window_params_causal":true,
 	"window_plot_measurements":false,
 	"ignore_network":false
-}
+}]

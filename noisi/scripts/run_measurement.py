@@ -148,8 +148,9 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
             # step index
             i+=1
     
-    filename = '{}.measurement.csv'.format(mtype)
-    measurements.to_csv(os.path.join(step_dir,filename),index=None)
+    return measurements
+    #filename = '{}.measurement.csv'.format(mtype)
+    #measurements.to_csv(os.path.join(step_dir,filename),index=None)
 
 def run_measurement(source_configfile,measr_configfile,
     step,ignore_network,step_test):
@@ -157,25 +158,35 @@ def run_measurement(source_configfile,measr_configfile,
 
     # get parameters    
     source_config=json.load(open(source_configfile))
-    measr_config=json.load(open(measr_configfile))
-    mtype = measr_config['mtype']
-    bandpass = measr_config['bandpass']
-    
-    
+    all_measr_config=json.load(open(measr_configfile))
 
-    # TODo all available misfits --  what parameters do they need (if any.)
-    if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
+
+
+    for i in range(len(all_measr_config)):
+
+        measr_config = all_measr_config[i]
+
+        mtype = measr_config['mtype']
+        bandpass = measr_config['bandpass']
         
+        
+    
+        # TODo all available misfits --  what parameters do they need (if any.)
+        if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
+            
+    
+            g_speed                         =    measr_config['g_speed']
+            window_params                   =    {}
+            window_params['hw']             =    measr_config['window_params_hw']
+            window_params['sep_noise']      =    measr_config['window_params_sep_noise']
+            window_params['win_overlap']    =    measr_config['window_params_win_overlap']
+            window_params['wtype']          =    measr_config['window_params_wtype']
+            window_params['causal_side']    =    measr_config['window_params_causal']
+            window_params['plot']           =    measr_config['window_plot_measurements']
+    
+        msr = measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
+            step_test=step_test,g_speed=g_speed,window_params=window_params)
 
-        g_speed                         =    measr_config['g_speed']
-        window_params                   =    {}
-        window_params['hw']             =    measr_config['window_params_hw']
-        window_params['sep_noise']      =    measr_config['window_params_sep_noise']
-        window_params['win_overlap']    =    measr_config['window_params_win_overlap']
-        window_params['wtype']          =    measr_config['window_params_wtype']
-        window_params['causal_side']    =    measr_config['window_params_causal']
-        window_params['plot']           =    measr_config['window_plot_measurements']
-   
-    measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
-        step_test=step_test,g_speed=g_speed,window_params=window_params)
+        filename = '{}.measurement.{}.csv'.format(mtype,i)
+        msr.to_csv(os.path.join(step_dir,filename),index=None)
     

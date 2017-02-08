@@ -21,12 +21,14 @@ def plot_grid(map_x,map_y,map_z_all,stations=[],v=None,globe=False,
     if latmin == None:
         latmin = np.min(map_y)
 
-    nmaps = map_z_all.shape[0]
+    nmaps = map_z_all.shape[1] if map_z_all.ndim > 1 else 1
+
+    print("Preparing {} map(s).".format(nmaps))
 
 
     for i in range(nmaps):
 
-        map_z = map_z_all[i,:] if map_z_all.ndim > 1 else map_z_all
+        map_z = map_z_all[:,i] if map_z_all.ndim > 1 else map_z_all
 
         m = Basemap(rsphere=6378137,resolution=coastres,
         projection=proj,lat_0=0.,

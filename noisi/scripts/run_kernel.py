@@ -149,14 +149,14 @@ def g1g2_kern_simple(wf1,wf2,kernel,adjt,
     #ToDo: Parallel loop(s)
     #ToDo tests
     
-    ntime, n, n_corr = wf1.get_ns(source_conf['max_lag'])#get_ns(wf1,source_conf)
     
-    
-    taper = cosine_taper(ntime,p=0.05)
     
     with WaveField(wf1) as wf1, WaveField(wf2) as wf2:
         
-        
+        ntime, n, n_corr = wf1.get_ns(source_conf['max_lag'])#get_ns(wf1,source_conf)
+
+        taper = cosine_taper(ntime,p=0.05)
+
         if wf1.stats['Fs'] != wf2.stats['Fs']:
             msg = 'Sampling rates of synthetic green\'s functions must match.'
             raise ValueError(msg)

@@ -135,8 +135,9 @@ def adjointsrcs(f,f_syn,m_params):
         tr_o = read(f)[0]
     except:
         print('\nCould not read data: '+os.path.basename(f))
+        return [],success
         #i+=1
-        continue
+        #continue
     # try:
     #     synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
     #         ignore_network=ignore_network)
@@ -149,8 +150,9 @@ def adjointsrcs(f,f_syn,m_params):
         
     except:
         print('\nCould not read synthetics: '+os.path.basename(f))
+        return [],success
         #i+=1
-        continue
+        #continue
 
     # Add essential metadata
     #tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
@@ -260,6 +262,20 @@ def run_adjointsrcs(source_configfile,measr_configfile,step,ignore_network):
         for m in measr_config:
 
             adjt_part, success = adjointsrcs(f,f_syn,m)
+            if success:
+                adjt.append(adjt_part)
+            else:
+                adjt.append(None)
+
+        if None in adjt:
+            continue
+
+        else:
+            adjt = np.array(adjt)
+
+            fname = os.path.join(adj_dir,
+                os.splitext(os.path.basename(synth_filename))[0],'.npy')
+            np.save(fname,adjt)
     
         
         

@@ -40,11 +40,11 @@ def get_station_info(stats):
 
 
 
-def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**options):
+def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,params):
     
     """
     Get measurements on noise correlation data and synthetics. 
-    options: g_speed,window_params (only needed if mtype is ln_energy_ratio or enery_diff)
+    params: window parameters (only needed if mtype is ln_energy_ratio or enery_diff)
     """
     step_n = 'step_{}'.format(int(step))
     
@@ -70,8 +70,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
     'syn','obs','l2_norm','snr','snr_a','nstack']
     measurements = pd.DataFrame(columns=columns)
     
-    _options_ac = copy.deepcopy(options)
-    _options_ac['window_params']['causal_side'] = not(options['window_params']['causal_side'])
+    _options_ac = copy.deepcopy(params)
+    _options_ac['causal_side'] = not(params['causal_side'])
     
     
     if files == []:
@@ -119,8 +119,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
             func = rm.get_measure_func(mtype)
             try:
                 
-                msr_o = func(tr_o,**options)
-                msr_s = func(tr_s,**options)
+                msr_o = func(tr_o,params)
+                msr_s = func(tr_s,params)
 
             except:
                 print("** Could not take measurement")
@@ -138,8 +138,8 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
             else:
                 l2_so = 0.5*(msr_s-msr_o)**2
                 msr = msr_o
-                snr = snratio(tr_o,**options)
-                snr_a = snratio(tr_o,**_options_ac)
+                snr = snratio(tr_o,params)
+                snr_a = snratio(tr_o,_options_ac)
 
             
             info.extend([msr_s,msr,l2_so,snr,snr_a,tr_o.stats.sac.user0])
@@ -159,7 +159,7 @@ def run_measurement(source_configfile,measr_configfile,
     # get parameters    
     source_config=json.load(open(source_configfile))
     all_measr_config=json.load(open(measr_configfile))
-
+    step_dir = os.path.join(source_config['source_path'],"step_{}".format(step))
 
 
     for i in range(len(all_measr_config)):
@@ -169,23 +169,23 @@ def run_measurement(source_configfile,measr_configfile,
         mtype = measr_config['mtype']
         bandpass = measr_config['bandpass']
         
-        
-    
+        # This is a bit stupid and could be much easier, if the parameter dictionary
+        # is directly passed to measurement function.
         # TODo all available misfits --  what parameters do they need (if any.)
-        if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
-            
-    
-            g_speed                         =    measr_config['g_speed']
-            window_params                   =    {}
-            window_params['hw']             =    measr_config['window_params_hw']
-            window_params['sep_noise']      =    measr_config['window_params_sep_noise']
-            window_params['win_overlap']    =    measr_config['window_params_win_overlap']
-            window_params['wtype']          =    measr_config['window_params_wtype']
-            window_params['causal_side']    =    measr_config['window_params_causal']
-            window_params['plot']           =    measr_config['window_plot_measurements']
+        #if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
+        #    
+    #
+        #    g_speed                         =    measr_config['g_speed']
+        #    window_params                   =    {}
+        #    window_params['hw']             =    measr_config['hw']
+        #    window_params['sep_noise']      =    measr_config['sep_noise']
+        #    window_params['win_overlap']    =    measr_config['win_overlap']
+        #    window_params['wtype']          =    measr_config['wtype']
+        #    window_params['causal_side']    =    measr_config['causal']
+        #    window_params['plot']           =    measr_config['window_plot_measurements']
     
         msr = measurement(source_config,mtype,step,ignore_network,bandpass=bandpass,
-            step_test=step_test,g_speed=g_speed,window_params=window_params)
+            step_test=step_test,params=measr_config)
 
         filename = '{}.measurement.{}.csv'.format(mtype,i)
         msr.to_csv(os.path.join(step_dir,filename),index=None)

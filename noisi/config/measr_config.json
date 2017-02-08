@@ -4,11 +4,11 @@
 	"g_speed":3000,
 	"bandpass":null,
 	"bandpass_params":[],
-	"window_params_wtype":"boxcar",
-	"window_params_hw":200,
-	"window_params_win_overlap":false,
-	"window_params_sep_noise":2.0,
-	"window_params_causal":true,
+	"wtype":"boxcar",
+	"hw":200,
+	"win_overlap":false,
+	"sep_noise":2.0,
+	"causal":true,
 	"window_plot_measurements":false,
 	"ignore_network":false
 }]

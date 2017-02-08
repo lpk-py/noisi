@@ -74,7 +74,7 @@ skip these correlations.')
         
     return(True)    
     
-def get_window(stats,g_speed,params):
+def get_window(stats,params):
     """
     Obtain a window centered at distance * g_speed
     stats: obspy Stats object
@@ -87,7 +87,8 @@ def get_window(stats,g_speed,params):
     dist = stats.sac.dist
     Fs = stats.sampling_rate
     n = stats.npts
-    
+    g_speed = params['g_speed']
+
     # Find indices for window bounds
     ind_lo = int((dist/g_speed-params['hw'])*Fs) + s_0
     ind_hi = int((dist/g_speed+params['hw'])*Fs) + s_0
@@ -128,8 +129,10 @@ def window(wtype,n,i0,i1):
      
      
         
-def snratio(correlation,g_speed,window_params):
-    window = get_window(correlation.stats,g_speed,window_params)
+def snratio(correlation,params):
+
+    window = get_window(correlation.stats,params)
+    
     
     if not window_params['causal_side']:
         win_s = window[0][::-1]

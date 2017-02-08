@@ -98,7 +98,7 @@ def get_essential_sacmeta(sac):
 #         return None
 
 
-def adjointsrcs(source_config,mtype,step,ignore_network,**options):
+def adjointsrcs(f,f_syn,m_params):
     
     """
     Get 'adjoint source' from noise correlation data and synthetics. 
@@ -106,79 +106,89 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
     """
     
     
-    files = [f for f in os.listdir(os.path.join(source_config['source_path'],
-    'observed_correlations')) ]
-    files = [os.path.join(source_config['source_path'],
-    'observed_correlations',f) for f in files]
+    # files = [f for f in os.listdir(os.path.join(source_config['source_path'],
+    # 'observed_correlations')) ]
+    # files = [os.path.join(source_config['source_path'],
+    # 'observed_correlations',f) for f in files]
     
    
-    step_n = 'step_{}'.format(int(step))
-    synth_dir = os.path.join(source_config['source_path'],
-    step_n,'corr')
-    adj_dir = os.path.join(source_config['source_path'],
-    step_n,'adjt')
+    # step_n = 'step_{}'.format(int(step))
+    # synth_dir = os.path.join(source_config['source_path'],
+    # step_n,'corr')
+    # adj_dir = os.path.join(source_config['source_path'],
+    # step_n,'adjt')
     
     
    
-    if files == []:
-        msg = 'No input found!'
-        raise ValueError(msg)
+    # if files == []:
+    #     msg = 'No input found!'
+    #     raise ValueError(msg)
     
     #i = 0
-    with click.progressbar(files,label='Determining adjoint sources...') as bar:
+    #with click.progressbar(files,label='Determining adjoint sources...') as bar:
         
-        for f in bar:
-            
-            try: 
-                tr_o = read(f)[0]
-            except:
-                print('\nCould not read data: '+os.path.basename(f))
-                #i+=1
-                continue
-            try:
-                synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
-                    ignore_network=ignore_network)
-                if synth_filename is None:
-                    continue
-                #sname = glob(os.path.join(synth_dir,synth_filename))[0]
-                print(synth_filename)
-                tr_s = read(synth_filename)[0]
-                
-            except:
-                print('\nCould not read synthetics: '+os.path.basename(f))
-                #i+=1
-                continue
+        #for f in bar:
 
-            # Add essential metadata
-            tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
-
-            # Check sampling rates. 
-            if round(tr_s.stats.sampling_rate,6) != round(tr_o.stats.sampling_rate,6):
-                print("Sampling Rates (Hz)")
-                print(tr_s.stats.sampling_rate)
-                print(tr_o.stats.sampling_rate)
-                msg = 'Sampling rates of data and synthetics must match.'
-                raise ValueError(msg)
-
-            # Waveforms must have same nr of samples.
-            tr_s.data = my_centered(tr_s.data,tr_o.stats.npts)    
-           
-           
-            # Get the adjoint source
-            func = af.get_adj_func(mtype)
-            data, success = func(tr_o,tr_s,**options)
-            if not success:
-                continue
-           
-            adj_src = Trace(data=data)
 
             
+    try: 
+        tr_o = read(f)[0]
+    except:
+        print('\nCould not read data: '+os.path.basename(f))
+        #i+=1
+        continue
+    # try:
+    #     synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
+    #         ignore_network=ignore_network)
+    #     if synth_filename is None:
+    #         continue
+    #     #sname = glob(os.path.join(synth_dir,synth_filename))[0]
+    #     print(synth_filename)
+    try:
+        tr_s = read(f_syn)[0]
+        
+    except:
+        print('\nCould not read synthetics: '+os.path.basename(f))
+        #i+=1
+        continue
 
-            adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
-            adj_src.stats.sac = tr_s.stats.sac.copy()
+    # Add essential metadata
+    #tr_s.stats.sac = get_essential_sacmeta(tr_o.stats.sac)
+
+    # Check sampling rates. 
+    if round(tr_s.stats.sampling_rate,6) != round(tr_o.stats.sampling_rate,6):
+        print("Sampling Rates (Hz)")
+        print(tr_s.stats.sampling_rate)
+        print(tr_o.stats.sampling_rate)
+        msg = 'Sampling rates of data and synthetics must match.'
+        raise ValueError(msg)
+
+    # Waveforms must have same nr of samples.
+    tr_s.data = my_centered(tr_s.data,tr_o.stats.npts)    
+   
+   
+    # Get the adjoint source
+
+    func = af.get_adj_func(m_params['mtype'])
+    data, success = func(tr_o,tr_s,m_params)
+
+    return data, success
+            #if not success:
+                #continue
+            #else:
+                # save
+
+
+           
+            #adj_src = Trace(data=data)
+
+            
+
+            #adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
+            #adj_src.stats.sac = tr_s.stats.sac.copy()
             # Save the adjoint source
-            file_adj_src = os.path.join(adj_dir,os.path.basename(synth_filename))
-            adj_src.write(file_adj_src,format='SAC')
+            #file_adj_src = os.path.join(adj_dir,os.path.basename(synth_filename))
+            #adj_src.write(file_adj_src,format='SAC')
             
            
               
@@ -191,27 +201,65 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
 
 def run_adjointsrcs(source_configfile,measr_configfile,step,ignore_network):
     
+    # config
     source_config=json.load(open(source_configfile))
     measr_config=json.load(open(measr_configfile))
     
+    # directories
+    step_n = 'step_{}'.format(int(step))
+    synth_dir = os.path.join(source_config['source_path'],
+    step_n,'corr')
+    adj_dir = os.path.join(source_config['source_path'],
+    step_n,'adjt')
     
-    mtype = measr_config['mtype']
-   
     
-    # TODo all available misfits --  what parameters do they need (if any.)
-    if mtype in ['ln_energy_ratio','energy_diff']:
-        g_speed = measr_config['g_speed']
-        window_params = {}
-        window_params['hw'] = measr_config['window_params_hw']
-        window_params['sep_noise'] = measr_config['window_params_sep_noise']
-        window_params['win_overlap'] = measr_config['window_params_win_overlap']
-        window_params['wtype'] = measr_config['window_params_wtype']
-        window_params['causal_side'] = measr_config['window_params_causal']
-        window_params['plot'] = False # To avoid plotting the same thing twice
-        # ToDo think of a better solution here.
-   
-        adjointsrcs(source_config,mtype,step,ignore_network=ignore_network,g_speed=g_speed,
-        window_params=window_params)
+    # measurement parameters of several measurements
+    #measurements = []
+    #for m in measr_config:
+    #    m_params = {}
+    #    m_params['mtype'] = m['mtype']
+
+        # TODo all available misfits 
+        #if mtype in ['ln_energy_ratio','energy_diff']:
+        #    m_params['g_speed'] = measr_config['g_speed']
+        #    m_params['hw'] = measr_config['window_params_hw']
+        #    m_params['sep_noise'] = measr_config['window_params_sep_noise']
+        #    m_params['win_overlap'] = measr_config['window_params_win_overlap']
+        #    m_params['wtype'] = measr_config['window_params_wtype']
+        #    m_params['causal_side'] = measr_config['window_params_causal']
+        #    m_params['plot'] = False # To avoid plotting the same thing twice
+            # ToDo think of a better solution here.
+    
+        # else:
+        #     raise NotImplementedError('Measurement type not available.')
+
+      #  measurements.append(m_params)
+    
+
+# ToDo: Why is this so ugly?
+    files = [f for f in os.listdir(os.path.join(source_config['source_path'],
+    'observed_correlations')) ]
+    files = [os.path.join(source_config['source_path'],
+    'observed_correlations',f) for f in files]
+    
+    if files == []:
+        msg = 'No input found!'
+        raise ValueError(msg)
+
+
+    for f in files:
+
+        synth_filename = get_synthetics_filename(os.path.basename(f),synth_dir,
+            ignore_network=ignore_network)
+        if synth_filename is None:
+            continue
+        #sname = glob(os.path.join(synth_dir,synth_filename))[0]
+        
+        adjt = []
+
+        for m in measr_config:
+
+            adjt_part, success = adjointsrcs(f,f_syn,m)
     
         
         

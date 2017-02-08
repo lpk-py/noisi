@@ -6,11 +6,13 @@ from noisi.util import windows as wn
 
 
 
-def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
+def log_en_ratio_adj(corr_o,corr_s,m_params):
 
     success = False
 
-    window = wn.get_window(corr_o.stats,g_speed,window_params)
+    #g_speed = m_params['g_speed']
+    
+    window = wn.get_window(corr_o.stats,m_params)
     win = window[0]
     #msr_o = rm.log_en_ratio(corr_o,g_speed,window_params)
     #msr_s = rm.log_en_ratio(corr_s,g_speed,window_params)
@@ -33,14 +35,17 @@ def log_en_ratio_adj(corr_o,corr_s,g_speed,window_params):
         adjt_src = win-win+np.nan
     return adjt_src, success
     
-def energy(corr_o,corr_s,g_speed,window_params):
+def energy(corr_o,corr_s,m_params):
     
     
     success = False
+
+    #g_speed = m_params['g_speed']
+
     
-    window = wn.get_window(corr_o.stats,g_speed,window_params)
+    window = wn.get_window(corr_o.stats,m_params)
     
-    if window_params['causal_side']:
+    if m_params['causal_side']:
         win = window[0]
     else:
         win = window[0][::-1]

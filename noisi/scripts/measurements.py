@@ -84,8 +84,8 @@ def windowed_envelope(correlation,plot=False):
     pass    
 
 
-def windowed_waveform(correlation,g_speed,window_params):
-    window = get_window(correlation.stats,g_speed,window_params)
+def windowed_waveform(correlation,params):
+    window = get_window(correlation.stats,params)
     win = window[0]
     if window[2]:
         win_caus = (correlation.data * win)
@@ -96,32 +96,32 @@ def windowed_waveform(correlation,g_speed,window_params):
     return msr
 
 
-def energy(correlation,g_speed,window_params):
+def energy(correlation,params):
     
-    window = get_window(correlation.stats,g_speed,window_params)
-    if window_params['causal_side']:
+    window = get_window(correlation.stats,params)
+    if params['causal_side']:
         win = window[0]
     else:
         win = window[0][::-1]
     if window[2]:
         E = np.trapz((correlation.data * win)**2)
         msr = E
-        if window_params['plot']:
+        if params['plot']:
             plot_window(correlation,win,E)
     else:
         msr = np.nan
         
     return msr
     
-def log_en_ratio(correlation,g_speed,window_params):
+def log_en_ratio(correlation,params):
     delta = correlation.stats.delta
-    window = get_window(correlation.stats,g_speed,window_params)
+    window = get_window(correlation.stats,params)
     win = window[0]
     if window[2]:
         E_plus = np.trapz((correlation.data * win)**2) * delta
         E_minus = np.trapz((correlation.data * win[::-1])**2) * delta
         msr = log(E_plus/(E_minus+np.finfo(E_minus).tiny))
-        if window_params['plot']:
+        if params['plot']:
             plot_window(correlation,win,msr)
     else:
         msr = np.nan

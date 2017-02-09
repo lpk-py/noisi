@@ -261,20 +261,20 @@ def run_adjointsrcs(source_configfile,measr_configfile,step,ignore_network):
 
         for m in measr_config:
 
-            adjt_part, success = adjointsrcs(f,f_syn,m)
+            adjt_part, success = adjointsrcs(f,synth_filename,m)
             if success:
                 adjt.append(adjt_part)
             else:
-                adjt.append(None)
+                adjt.append([])
 
-        if None in adjt:
+        if [] in adjt:
             continue
 
         else:
             adjt = np.array(adjt)
 
             fname = os.path.join(adj_dir,
-                os.splitext(os.path.basename(synth_filename))[0],'.npy')
+                os.path.splitext(os.path.basename(synth_filename))[0]+'.npy')
             np.save(fname,adjt)
     
         

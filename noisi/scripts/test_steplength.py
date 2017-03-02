@@ -104,7 +104,7 @@ def _update_conjugategrad(
 	
 	if src_model.model['distr_basis'][:].min() < 0.:
 		warn('Step length leads to negative source model...reset values to be >=0.')
-		src_model.model['distr_basis'][:] = max(src_model.model['distr_basis'][:],0.0)
+		src_model.model['distr_basis'][:] = src_model.model['distr_basis'][:].clip(0.0)
 	src_model.model.close()
 	return()
 

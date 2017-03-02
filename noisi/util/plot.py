@@ -8,7 +8,7 @@ import numpy as np
 def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     outfile=None,title=None,shade='flat',cmap=None,
     sequential=False,v_min=None,normalize=True,coastres='c',proj='cyl',
-    lonmin=None,lonmax=None,latmin=None,latmax=None,mode='interp'):
+    lonmin=None,lonmax=None,latmin=None,latmax=None,mode='interp',resol=1):
     
     lat_0  = 0.5*(map_y.max()-map_y.min())
 
@@ -21,7 +21,10 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     if latmin == None:
         latmin = np.min(map_y)
 
-
+    if resol != 1:
+        map_x = map_x[::resol]
+        map_y = map_y[::resol]
+        map_z = map_z[::resol]
 
     m = Basemap(rsphere=6378137,resolution=coastres,
     projection=proj,lat_0=0.,
@@ -66,9 +69,9 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
         
         
         colors = cm(map_z)
-
-        plt.scatter(map_x,map_y,marker='o',c=colors)
-        m.colorbar(location='bottom',pad=0.4)
+        sizes = np.ones(len(map_x))*50
+        plt.scatter(map_x,map_y,marker='o',c=colors,s=sizes)
+        #m.colorbar(location='bottom',pad=0.4)
     
     if globe:
         m.drawcoastlines(linewidth=0.5)

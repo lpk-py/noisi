@@ -8,7 +8,7 @@ from math import isnan
 import sys
 from noisi.util.corr_pairs import glob_obs_corr
 from noisi.my_classes.noisesource import NoiseSource
-
+from warnings import warn
 ####################################
 # ToDo: more fancy and more secure with click or argparse
 source_model = sys.argv[1]
@@ -103,8 +103,8 @@ def _update_conjugategrad(
 	src_model.model['distr_basis'][:] += step_length * upd
 	
 	if src_model.model['distr_basis'][:].min() < 0.:
-		raise ValueError('Step length is too large: Source model turns negative.')
-
+		warn('Step length leads to negative source model...reset values to be >=0.')
+		src_model.model['distr_basis'][:] = max(src_model.model['distr_basis'][:],0.0)
 	src_model.model.close()
 	return()
 

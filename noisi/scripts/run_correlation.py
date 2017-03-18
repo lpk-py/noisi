@@ -430,21 +430,22 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
     p = define_correlationpairs(source_config['project_path'])
-    print(p)
+    print('Nr all possible correlation pairs %g ' %len(p))
     
     # Remove pairs for which no observation is available
     if obs_only:
         directory = os.path.join(source_config['source_path'],'observed_correlations')
         p = rem_no_obs(p,source_config,directory=directory)
+        print('Nr correlation pairs after checking available observ. %g ' %len(p))
     if steplengthrun:
         directory = os.path.join(source_config['source_path'],
             'step_'+str(step),'obs_slt')
         p = rem_no_obs(p,source_config,directory=directory)
-        
+        print('Nr correlation pairs after checking available observ. %g ' %len(p))
 
     # Remove pairs that have already been calculated
     p = rem_fin_prs(p,source_config,step,kernelrun)
-
+    print('Nr correlation pairs after checking already calculated ones %g ' %len(p))
     # for each pair:
     
     #TRY

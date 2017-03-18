@@ -155,7 +155,7 @@ if prepare_test_steplength:
 
 	# select data...
 	if mode =='random':
-		data_select2 = data_accept.sample(n=nr_msr)
+		data_select = data_accept.sample(n=nr_msr)
 	elif mode == 'max':
 		data_select1 = data_accept.sort_values(by='l2_norm',na_position='first')
 		data_select = data_select1.iloc[-nr_msr:]

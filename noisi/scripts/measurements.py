@@ -99,19 +99,27 @@ def windowed_waveform(correlation,g_speed,window_params):
 def energy(correlation,g_speed,window_params):
     
     window = get_window(correlation.stats,g_speed,window_params)
-    if window_params['causal_side']:
-        win = window[0]
-    else:
-        win = window[0][::-1]
+    msr = [np.nan,np.nan]
+    #if window_params['causal_side']:
+    win = window[0]
+    #else:
+    #    win = window[0][::-1]
     if window[2]:
+        
+        # causal 
         E = np.trapz((correlation.data * win)**2)
-        msr = E
+        msr[0] = E
         if window_params['plot']:
             plot_window(correlation,win,E)
-    else:
-        msr = np.nan
-        
-    return msr
+
+        # acausal 
+        win = win[::-1]
+        E = np.trapz((correlation.data * win)**2)
+        msr[1] = E
+        if window_params['plot']:
+            plot_window(correlation,win,E)
+
+    return np.array(msr)
     
 def log_en_ratio(correlation,g_speed,window_params):
     delta = correlation.stats.delta

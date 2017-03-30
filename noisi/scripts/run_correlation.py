@@ -60,13 +60,25 @@ def paths_input(cp,source_conf,step,kernelrun):
     # Adjoint source
     
     if kernelrun:
-        try:
-            adjt = os.path.join(source_conf['source_path'],
-                         'step_'+str(step),
-                         'adjt',"{}--{}.sac".format(sta1,sta2))
-            adjt = glob(adjt)[0]
 
-        except IndexError:
+        adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.sac".format(sta1,sta2))
+        adjt = glob(adjtf)
+
+        adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.c.sac".format(sta1,sta2))
+        adjt.extend(glob(adjtf))
+
+        adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.a.sac".format(sta1,sta2))
+        adjt.extend(glob(adjtf))
+
+        if adjt == []:
+
+
             print("No adjoint source found for station pair: {}, {}".format(sta1,sta2))
                 # ToDo: this is too horrible, please find another solution.
             adjt = '-'
@@ -186,9 +198,12 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 #    print('Adjoint source %s not found, skipping kernel.')
                 #    return()
 
-                kern = np.zeros(wf1.stats['ntraces'])
-                f = read(adjt)[0]
-                f.data = my_centered(f.data,n_corr)
+                kern = np.zeros((wf1.stats['ntraces'],len(adjt)))
+                
+                f = Stream()
+                for adjtfile in adjt:
+                    f += read(adjtfile)[0]
+                    f[-1].data = my_centered(f[-1].data,n_corr)
                 
             # Loop over source locations
             #with click.progressbar(range(wf1.stats['ntraces']),\
@@ -227,8 +242,9 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                     ##if i%50000 == 0:
                     #    ##print(corr_temp[0:10],file=None)
                         #print(corr_temp.max(),file=None)
-                    # A Riemann sum 
-                    kern[i] = np.dot(corr_temp,f.data) * f.stats.delta
+                    # A Riemann sum
+                    for j in len(adjt):
+                        kern[i,j] = np.dot(corr_temp,f[j].data) * f[j].stats.delta
                     
                 
                 else:
@@ -430,22 +446,27 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     #conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     
     p = define_correlationpairs(source_config['project_path'])
-    print('Nr all possible correlation pairs %g ' %len(p))
+    if rank == 0:
+        print('Nr all possible correlation pairs %g ' %len(p))
     
     # Remove pairs for which no observation is available
     if obs_only:
         directory = os.path.join(source_config['source_path'],'observed_correlations')
         p = rem_no_obs(p,source_config,directory=directory)
-        print('Nr correlation pairs after checking available observ. %g ' %len(p))
+        if rank == 0:
+            print('Nr correlation pairs after checking available observ. %g ' %len(p))
     if steplengthrun:
         directory = os.path.join(source_config['source_path'],
             'step_'+str(step),'obs_slt')
         p = rem_no_obs(p,source_config,directory=directory)
-        print('Nr correlation pairs after checking available observ. %g ' %len(p))
+        if rank == 0:
+            print('Nr correlation pairs after checking available observ. %g ' %len(p))
 
     # Remove pairs that have already been calculated
     p = rem_fin_prs(p,source_config,step,kernelrun)
-    print('Nr correlation pairs after checking already calculated ones %g ' %len(p))
+    if rank == 0:
+        print('Nr correlation pairs after checking already calculated ones %g ' %len(p))
+        print(16*'*')    
     # for each pair:
     
     #TRY

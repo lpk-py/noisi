@@ -56,17 +56,17 @@ def assemble_ascent_dir(source_model,step,snr_min,n_min,save_all=False):
 		sta1 = data.at[i,'sta1']
 		sta2 = data.at[i,'sta2']
 	
-		if sta1.split('.')[-1][-1] in ['E','N','T','R']:
-			msg = "Cannot yet handle horizontal components"
-			raise NotImplementedError(msg)
-		if sta2.split('.')[-1][-1] in ['E','N','T','R']:
-			msg = "Cannot yet handle horizontal components"
-			raise NotImplementedError(msg)
+		#if sta1.split('.')[-1][-1] in ['E','N','T','R']:
+	#		msg = "Cannot yet handle horizontal components"
+#			raise NotImplementedError(msg)
+#		if sta2.split('.')[-1][-1] in ['E','N','T','R']:
+#			msg = "Cannot yet handle horizontal components"
+#			raise NotImplementedError(msg)
 	
 	
 # ToDo !!! Replace this by a decent formulation, where the channel is properly set !!! No error for E, R, T, N
-		sta1 = "*.{}..MXZ".format(sta1.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
-		sta2 = "*.{}..MXZ".format(sta2.split('.')[1]) # ignoring network: IRIS has sometimes several network codes at same station
+		sta1 = "*.{}..{}".format(sta1.split('.')[1],source_config['channel']) # ignoring network: IRIS has sometimes several network codes at same station
+		sta2 = "*.{}..{}".format(sta2.split('.')[1],source_config['channel']) # ignoring network: IRIS has sometimes several network codes at same station
 	
 		kernelfile1 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta1,sta2))
 		kernelfile2 = os.path.join(datadir,'kern',"{}--{}.npy".format(sta2,sta1))

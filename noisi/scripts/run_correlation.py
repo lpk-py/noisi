@@ -436,6 +436,13 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
 
 def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
 
+
+    # simple embarrassingly parallel run:
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
     step = int(step)
 
 
@@ -477,11 +484,7 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     # - files not found?
 
 
-    # simple embarrassingly parallel run:
-
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
+    
     
 
     # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 

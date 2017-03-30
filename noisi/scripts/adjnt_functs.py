@@ -40,18 +40,18 @@ def energy(corr_o,corr_s,g_speed,window_params):
     
     window = wn.get_window(corr_o.stats,g_speed,window_params)
     
-    if window_params['causal_side']:
-        win = window[0]
-    else:
-        win = window[0][::-1]
+    #if window_params['causal_side']:
+    win = window[0]
+    #else:
+     #   win = window[0][::-1]
 
     if window[2]:    
-        u = 2 * np.multiply(np.power(win,2),corr_s.data)
-        
-        adjt_src = u
+        u1 = 2 * np.multiply(np.power(win,2),corr_s.data)
+        u2 = 2 * np.multiply(np.power(win[::-1],2),corr_s.data)
+        adjt_src = [u1,u2]
         success = True
     else:
-        adjt_src = win-win+np.nan
+        adjt_src = [win-win+np.nan,win-win+np.nan]
     
     return adjt_src, success
     

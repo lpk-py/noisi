@@ -169,16 +169,35 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
             data, success = func(tr_o,tr_s,**options)
             if not success:
                 continue
-           
-            adj_src = Trace(data=data)
-
             
+            adj_src = Stream()
 
-            adj_src.stats.sampling_rate = tr_s.stats.sampling_rate
-            adj_src.stats.sac = tr_s.stats.sac.copy()
+            if isinstance(data,list):
+                
+                adj_src += Trace(data=data[0])
+                adj_src += Trace(data=data[1])
+                srccnt = 1
+                for adjtrc in adj_src:
+                    adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
+                    adjtrc.stats.sac = tr_s.stats.sac.copy()
             # Save the adjoint source
-            file_adj_src = os.path.join(adj_dir,os.path.basename(synth_filename))
-            adj_src.write(file_adj_src,format='SAC')
+                    file_adj_src = os.path.join(adj_dir,
+                        os.path.basename(synth_filename).
+                        rstrip('sac')+'{}.sac'.format(srccnt))
+                    adj_src.write(file_adj_src,format='SAC')
+                    srccnt += 1
+            
+            else:
+                adj_src += Trace(data=data)
+                for adjtrc in adj_src:
+                    adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
+                    adjtrc.stats.sac = tr_s.stats.sac.copy()
+            # Save the adjoint source
+                    file_adj_src = os.path.join(adj_dir,
+                        os.path.basename(synth_filename))
+                    adj_src.write(file_adj_src,format='SAC')
+
+
             
            
               

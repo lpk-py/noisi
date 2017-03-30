@@ -5,7 +5,7 @@ import click
 import json
 from scipy.signal import hilbert
 from glob import glob
-from obspy import read, Trace
+from obspy import read, Trace, Stream
 from obspy.geodetics import gps2dist_azimuth
 
 from noisi.scripts import adjnt_functs as af

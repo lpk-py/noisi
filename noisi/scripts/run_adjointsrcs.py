@@ -177,28 +177,30 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                 adj_src += Trace(data=data[0])
                 adj_src += Trace(data=data[1])
                 
-                # TODO: super ugly
-                brnch = 'c'
-                for adjtrc in adj_src:
-                    adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
-                    adjtrc.stats.sac = tr_s.stats.sac.copy()
-            # Save the adjoint source
-                    file_adj_src = os.path.join(adj_dir,
-                        os.path.basename(synth_filename).
-                        rstrip('sac')+'{}.sac'.format(brnch))
-                    print(file_adj_src)
-                    adj_src.write(file_adj_src,format='SAC')
-                    brnch = 'a'
+            #     # TODO: super ugly
+            #     brnch = 'c'
+            #     for adjtrc in adj_src:
+            #         adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
+            #         adjtrc.stats.sac = tr_s.stats.sac.copy()
+            # # Save the adjoint source
+            #         file_adj_src = os.path.join(adj_dir,
+            #             os.path.basename(synth_filename).
+            #             rstrip('sac')+'{}.sac'.format(brnch))
+            #         print(file_adj_src)
+            #         adj_src.write(file_adj_src,format='SAC')
+                    
             
             else:
                 adj_src += Trace(data=data)
-                for adjtrc in adj_src:
-                    adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
-                    adjtrc.stats.sac = tr_s.stats.sac.copy()
+            
+
+            for adjtrc in adj_src:
+                adjtrc.stats.sampling_rate = tr_s.stats.sampling_rate
+                adjtrc.stats.sac = tr_s.stats.sac.copy()
             # Save the adjoint source
-                    file_adj_src = os.path.join(adj_dir,
+                file_adj_src = os.path.join(adj_dir,
                         os.path.basename(synth_filename))
-                    adj_src.write(file_adj_src,format='SAC')
+                adj_src.write(file_adj_src,format='SAC')
 
 
             

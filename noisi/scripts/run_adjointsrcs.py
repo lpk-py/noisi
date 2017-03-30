@@ -184,6 +184,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                     file_adj_src = os.path.join(adj_dir,
                         os.path.basename(synth_filename).
                         rstrip('sac')+'{}.sac'.format(srccnt))
+                    print(file_adj_src)
                     adj_src.write(file_adj_src,format='SAC')
                     srccnt += 1
             

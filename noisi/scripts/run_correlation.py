@@ -442,7 +442,7 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    
+
     step = int(step)
 
 
@@ -515,10 +515,11 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
         if os.path.exists(kernel) and kernelrun:
             continue
 
-        if not os.path.exists(adjt) and kernelrun:
-            print('No adjoint source found for:')
-            print(os.path.basename(adjt))
-            continue
+        for asr in adjt:
+            if not os.path.exists(asr) and kernelrun:
+                print('No adjoint source found for:')
+                print(os.path.basename(asr))
+                continue
 
         
             #if int(step) == 0:

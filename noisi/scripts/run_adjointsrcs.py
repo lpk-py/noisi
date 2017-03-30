@@ -187,7 +187,7 @@ def adjointsrcs(source_config,mtype,step,ignore_network,**options):
                         os.path.basename(synth_filename).
                         rstrip('sac')+'{}.sac'.format(brnch))
                     print(file_adj_src)
-                    adtrc.write(file_adj_src,format='SAC')
+                    adjtrc.write(file_adj_src,format='SAC')
                     brnch = 'a'
             
             else:

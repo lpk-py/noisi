@@ -112,7 +112,12 @@ def assemble_ascent_dir(source_model,step,snr_min,n_min,save_all=False):
 # multiply kernel and measurement, add to descent dir. 
 	
 		else:
-			kernel *= (data.at[i,'syn'] - data.at[i,'obs'])
+			if kernel.shape()[-1] == 1:
+				kernel *= (data.at[i,'syn'] - data.at[i,'obs'])
+			else:
+				kernel[:,0] *= (data.at[i,'syn'] - data.at[i,'obs'])
+				kernel[:,1] *= (data.at[i,'syn_a'] - data.at[i,'obs_a'])
+				kernel = kernel[:,0] + kernel[:,1]
 			cnt_success += 1 # yuhu
 
 

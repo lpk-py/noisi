@@ -7,9 +7,10 @@ import h5py
 import json
 import click
 from glob import glob
+from math import ceil
 from scipy.signal.signaltools import fftconvolve
 from scipy.fftpack import next_fast_len
-from obspy import Trace, read
+from obspy import Trace, read, Stream
 from noisi import NoiseSource, WaveField
 from noisi.util import geo, natural_keys
 from obspy.signal.invsim import cosine_taper
@@ -243,7 +244,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                     #    ##print(corr_temp[0:10],file=None)
                         #print(corr_temp.max(),file=None)
                     # A Riemann sum
-                    for j in len(adjt):
+                    for j in range(len(adjt)):
                         kern[i,j] = np.dot(corr_temp,f[j].data) * f[j].stats.delta
                     
                 
@@ -489,7 +490,7 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
 
     # The assignment of station pairs should be such that one core has as many occurrences of the same station as possible; 
     # this will prevent that many processes try to access the same hdf5 file all at once.
-    num_pairs = int( round(float(len(p))/float(size)) )
+    num_pairs = int( ceil(float(len(p))/float(size)) )
     p_p = p[ rank*num_pairs : rank*num_pairs + num_pairs] 
     
     print('Rank number %g' %rank)

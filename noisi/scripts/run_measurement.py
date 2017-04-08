@@ -150,7 +150,7 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
                     l2_so = 0.5*(msr_s-msr_o)**2
                     msr = msr_o
                     snr = snratio(tr_o,**options)
-                
+                    snr_a = snratio(tr_o,**_options_ac)
                     info.extend([msr_s,np.nan,msr,np.nan,
                     l2_so,snr,snr_a,tr_o.stats.sac.user0])
 

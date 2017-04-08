@@ -133,7 +133,7 @@ def log_en_ratio(correlation,g_speed,window_params):
             plot_window(correlation,win,msr)
     else:
         msr = np.nan
-    return [msr]
+    return np.array([msr])
 
 
 def get_measure_func(mtype):

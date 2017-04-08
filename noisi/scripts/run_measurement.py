@@ -136,12 +136,19 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
                 snr_a = np.nan
             # single value measurements:
             else:
-                l2_so = 0.5*(msr_s-msr_o)**2
-                msr = msr_o[0]
-                msr_a = msr_o[1]
-                snr = snratio(tr_o,**options)
-                snr_a = snratio(tr_o,**_options_ac)
-                l2 = l2_so.sum()/2.
+
+                if mtype == 'energy_diff':
+                    l2_so = 0.5*(msr_s-msr_o)**2
+                    msr = msr_o[0]
+                    msr_a = msr_o[1]
+                    snr = snratio(tr_o,**options)
+                    snr_a = snratio(tr_o,**_options_ac)
+                    l2 = l2_so.sum()/2.
+                elif mtype == 'ln_energy_ratio':
+                    l2_so = 0.5*(msr_s-msr_o)**2
+                    msr = msr_o
+                    snr = snratio(tr_o,**options)
+                    l2 = l2_so.sum()
 
             
             info.extend([msr_s[0],msr_s[1],msr,msr_a,

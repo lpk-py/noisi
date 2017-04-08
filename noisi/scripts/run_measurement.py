@@ -144,15 +144,18 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
                     snr = snratio(tr_o,**options)
                     snr_a = snratio(tr_o,**_options_ac)
                     l2 = l2_so.sum()/2.
+                    info.extend([msr_s[0],msr_s[1],msr,msr_a,
+                    l2,snr,snr_a,tr_o.stats.sac.user0])
                 elif mtype == 'ln_energy_ratio':
                     l2_so = 0.5*(msr_s-msr_o)**2
                     msr = msr_o
                     snr = snratio(tr_o,**options)
-                    l2 = l2_so.sum()
+                
+                    info.extend([msr_s,np.nan,msr,np.nan,
+                    l2,snr,snr_a,tr_o.stats.sac.user0])
 
             
-            info.extend([msr_s[0],msr_s[1],msr,msr_a,
-                l2,snr,snr_a,tr_o.stats.sac.user0])
+            
             measurements.loc[i] = info
 
             # step index

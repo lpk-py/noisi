@@ -145,11 +145,12 @@ if prepare_test_steplength:
 	data = pd.read_csv(msrfile)
 	# Get a set of n randomly chosen station pairs. Criteria: minimum SNR, 
 	# ---> prelim_stations.txt
-	data_accept = data[(data.snr > min_snr)]
+	data_accept = data[(data.snr_c > min_snr)]
+	data_accept = data_accept[(data_accept.snr_a > min_snr)]
 	data_accept = data_accept[(data_accept.nstack > min_stck)]
 	
 	data_accept = data_accept[~(data_accept.l2_norm.apply(np.isnan))]
-	data_accept = data_accept[~(data_accept.snr.apply(np.isnan))]
+	data_accept = data_accept[~(data_accept.snr_c.apply(np.isnan))]
 	data_accept = data_accept[~(data_accept.snr_a.apply(np.isnan))]
 	
 

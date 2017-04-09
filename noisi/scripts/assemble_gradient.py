@@ -121,9 +121,9 @@ def assemble_ascent_dir(source_model,step,snr_min,n_min,save_all=False):
 				kernel = kernel[:,0] + kernel[:,1]
 			cnt_success += 1 # yuhu
 
-		print(gradient.shape)
-		print(kernel.shape)
-		print(50*'*')
+		#print(gradient.shape)
+		#print(kernel.shape)
+		#print(50*'*')
 
 		gradient += kernel
 

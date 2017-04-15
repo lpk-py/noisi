@@ -1,16 +1,21 @@
 # plotting on the map
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
-from matplotlib.mlab import griddata
+
 import matplotlib.tri as tri    
 import numpy as np
+from scipy.interpolate import griddata
     
 def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     outfile=None,title=None,shade='flat',cmap=None,
     sequential=False,v_min=None,normalize=True,coastres='c',proj='cyl',
-    lonmin=None,lonmax=None,latmin=None,latmax=None,mode='interp',resol=1):
+    lat_0=None,lon_0=None,lonmin=None,lonmax=None,
+    latmin=None,latmax=None,mode='interp',resol=1):
     
-    lat_0  = 0.5*(map_y.max()-map_y.min())
+    if lat_0 is None:
+        lat_0  = 0.5*(map_y.max()-map_y.min())
+    if lon_0 is None:
+        lon_0 = 0.5*(map_x.max()-map_x.min())
 
     if lonmin == None:
         lonmin = np.min(map_x)
@@ -21,16 +26,21 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     if latmin == None:
         latmin = np.min(map_y)
 
+
     if resol != 1:
         map_x = map_x[::resol]
         map_y = map_y[::resol]
         map_z = map_z[::resol]
 
-    m = Basemap(rsphere=6378137,resolution=coastres,
-    projection=proj,lat_0=0.,
-    lon_0=0.,llcrnrlat=latmin,urcrnrlat=latmax,
-    llcrnrlon=lonmin,urcrnrlon=lonmax)
 
+    if not proj == 'ortho':
+        m = Basemap(rsphere=6378137,resolution=coastres,
+        projection=proj,lat_0=lat_0,lon_0=lon_0,
+        llcrnrlat=latmin,urcrnrlat=latmax,
+        llcrnrlon=lonmin,urcrnrlon=lonmax)
+    else:
+        m = Basemap(rsphere=6378137,resolution=coastres,
+        projection=proj,lat_0=lat_0,lon_0=lon_0)
 
     plt.figure()
     plt.subplot(111)
@@ -42,6 +52,7 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
 
     if normalize:
         map_z /= np.max(np.abs(map_z))
+    
     
     if v is None:
         v = np.max(map_z)
@@ -59,10 +70,17 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     
     print('max. value on map: %g' %map_z.max())
     if mode == 'interp':
+        
+        # triangulate first, then project, 
+        # and use plt.tripcolor to put it on the map.
         triangles = tri.Triangulation(map_x,map_y)
-        # tripcolor plot.
+        (triangles.x,triangles.y) = m(triangles.x,triangles.y)
+        # if it doesn't work, use pcolor mode
+
         plt.tripcolor(triangles,map_z,shading=shade, vmin=v_min,vmax=v,cmap=cm)
+
         m.colorbar(location='bottom',pad=0.4)
+
     elif mode == 'srclocs':
         plt.scatter(map_x,map_y,marker='o',c='white')
     elif mode == 'srcdots':
@@ -70,23 +88,29 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
         
         colors = cm(map_z)
         sizes = np.ones(len(map_x))*50
-        plt.scatter(map_x,map_y,marker='o',c=colors,s=sizes)
-        #m.colorbar(location='bottom',pad=0.4)
+        m.scatter(map_x,map_y,marker='o',c=colors,s=sizes)
+        
+    elif mode == 'pcolor':
+        mx, my = m(map_x,map_y)
+        m.pcolor(mx,my,map_z,cmap=cm,tri=True,shading=shade,vmin=v_min,vmax=v)
+        m.colorbar(location='bottom',pad=0.4)
     
     if globe:
-        m.drawcoastlines(linewidth=0.5)
+       m.drawcoastlines(linewidth=0.5)
     else:
-        m.drawcoastlines(linewidth=2.5)
-    if globe:
-        m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
-        m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
-    else:
-        d_lon = round(abs(lonmax-lonmin) / 5.)
-        d_lat = round(abs(latmax-latmin) / 5.)
-        parallels = np.arange(latmin,latmax,d_lat).astype(int)
-        meridians = np.arange(lonmin,lonmax,d_lon).astype(int)
-        m.drawparallels(parallels,labels=[1,0,0,0]) # draw parallels
-        m.drawmeridians(meridians,labels=[0,0,0,1])
+       m.drawcoastlines(linewidth=2.0)
+    
+    if not proj == 'ortho':
+        if globe:
+           m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
+           m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
+        else:
+           d_lon = round(abs(lonmax-lonmin) / 5.)
+           d_lat = round(abs(latmax-latmin) / 5.)
+           parallels = np.arange(latmin,latmax,d_lat).astype(int)
+           meridians = np.arange(lonmin,lonmax,d_lon).astype(int)
+           m.drawparallels(parallels,labels=[1,0,0,0]) # draw parallels
+           m.drawmeridians(meridians,labels=[0,0,0,1])
 
     #draw station locations
     for sta in stations:

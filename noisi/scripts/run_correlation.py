@@ -20,7 +20,7 @@ from noisi.util.windows import my_centered, zero_buddy
 from noisi.util.corr_pairs import define_correlationpairs, rem_fin_prs, rem_no_obs
 import matplotlib.pyplot as plt
 #ToDo: put in the possibility to run on mixed channel pairs
-def paths_input(cp,source_conf,step,kernelrun):
+def paths_input(cp,source_conf,step,kernelrun,ignore_network):
     
     inf1 = cp[0].split()
     inf2 = cp[1].split()
@@ -29,8 +29,13 @@ def paths_input(cp,source_conf,step,kernelrun):
     # Wavefield files
     conf = json.load(open(os.path.join(source_conf['project_path'],'config.json')))
     channel = source_conf['channel']
-    sta1 = "{}.{}..{}".format(*(inf1[0:2]+[channel]))
-    sta2 = "{}.{}..{}".format(*(inf2[0:2]+[channel]))
+
+    if ignore_network:
+        sta1 = "*.{}..{}".format(*(inf1[1:2]+[channel]))
+        sta2 = "*.{}..{}".format(*(inf2[1:2]+[channel]))
+    else:
+        sta1 = "{}.{}..{}".format(*(inf1[0:2]+[channel]))
+        sta2 = "{}.{}..{}".format(*(inf2[0:2]+[channel]))
     
     if source_conf['preprocess_do']:
         dir = os.path.join(source_conf['source_path'],'wavefield_processed')
@@ -67,15 +72,33 @@ def paths_input(cp,source_conf,step,kernelrun):
                      'adjt',"{}--{}.sac".format(sta1,sta2))
         adjt = glob(adjtf)
 
+        if ignore_network:
+            adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.sac".format(sta2,sta1))
+            adjt = glob(adjtf)
+
         adjtf = os.path.join(source_conf['source_path'],
                      'step_'+str(step),
                      'adjt',"{}--{}.c.sac".format(sta1,sta2))
         adjt.extend(glob(adjtf))
 
+        if ignore_network:
+            adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.c.sac".format(sta2,sta1))
+            adjt = glob(adjtf)
+
         adjtf = os.path.join(source_conf['source_path'],
                      'step_'+str(step),
                      'adjt',"{}--{}.a.sac".format(sta1,sta2))
+
+        if ignore_network:
+            adjtf = os.path.join(source_conf['source_path'],
+                     'step_'+str(step),
+                     'adjt',"{}--{}.a.sac".format(sta2,sta1))
         adjt.extend(glob(adjtf))
+
 
         if adjt == []:
 
@@ -435,7 +458,7 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
 
 
 
-def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
+def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False,ignore_network=False):
 
 
     # simple embarrassingly parallel run:
@@ -499,7 +522,7 @@ def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False):
     for cp in p_p:
         
         try:
-            wf1,wf2,src,adjt = paths_input(cp,source_config,step,kernelrun)
+            wf1,wf2,src,adjt = paths_input(cp,source_config,step,kernelrun,ignore_network)
             print(wf1,wf2,src)
         
             kernel,corr = paths_output(cp,source_config,step)

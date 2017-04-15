@@ -65,11 +65,12 @@ class NoiseSource(object):
     
     
     def plot(self,**options):
+        
         # plot the distribution
-        plot_grid(self.src_loc[0],self.src_loc[1],self.distr_basis[0],**options)
+        m = self.expand_distr()
+        plot_grid(self.src_loc[0],self.src_loc[1],m,**options)
 
-    
-    
+
     
     # Note: Inefficient way of doing things! Whichever script needs the noise source field should rather look up things directly in the hdf5 file.
     # But: ToDo: This could be used internally to write to a file, rather than reading from.

@@ -76,7 +76,7 @@ def paths_input(cp,source_conf,step,kernelrun,ignore_network):
             adjtf = os.path.join(source_conf['source_path'],
                      'step_'+str(step),
                      'adjt',"{}--{}.sac".format(sta2,sta1))
-            adjt = glob(adjtf)
+            adjt.extend(glob(adjtf))
 
         adjtf = os.path.join(source_conf['source_path'],
                      'step_'+str(step),

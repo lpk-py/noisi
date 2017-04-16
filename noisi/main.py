@@ -180,10 +180,11 @@ def measurement(source_model,step,ignore_network,step_test):
 @run.command(help='Calculate preliminary kernels.')
 @click.argument('source_model')
 @click.argument('step')
+@click.option('--ignore_network',is_flag=True)
 
-def kernel(source_model,step):
+def kernel(source_model,step,ignore_network):
     source_model = os.path.join(source_model,'source_config.json')
-    run_corr(source_model,step,kernelrun=True)
+    run_corr(source_model,step,kernelrun=True,ignore_network=ignore_network)
 
 
 @run.command(help='Calculate few correlations for step length test.')

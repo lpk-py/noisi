@@ -226,8 +226,12 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
 
                 kern = np.zeros((wf1.stats['ntraces'],len(adjt)))
                 
+
+
                 f = Stream()
                 for adjtfile in adjt:
+                    if adjtfile == '-':
+                        continue
                     f += read(adjtfile)[0]
                     f[-1].data = my_centered(f[-1].data,n_corr)
                 

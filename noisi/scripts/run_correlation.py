@@ -231,7 +231,7 @@ def g1g2_corr(wf1,wf2,corr_file,kernel,adjt,
                 f = Stream()
                 for adjtfile in adjt:
                     if adjtfile == '-':
-                        continue
+                        return
                     f += read(adjtfile)[0]
                     f[-1].data = my_centered(f[-1].data,n_corr)
                 
@@ -464,7 +464,8 @@ def g1g2_kern(wf1,wf2,corr_file,kernel,adjt,
 
 
 
-def run_corr(source_configfile,step,kernelrun=False,steplengthrun=False,ignore_network=False):
+def run_corr(source_configfile,step,kernelrun=False,
+    steplengthrun=False,ignore_network=False):
 
 
     # simple embarrassingly parallel run:

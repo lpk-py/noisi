@@ -44,7 +44,7 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
 
     plt.figure()
     plt.subplot(111)
-    plt.gca().set_aspect('equal')
+    
     if title is not None:
         plt.title(title)
 
@@ -81,30 +81,49 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
 
         m.colorbar(location='bottom',pad=0.4)
 
-    elif mode == 'srclocs':
-        plt.scatter(map_x,map_y,marker='o',c='white')
-    elif mode == 'srcdots':
-        
-        
-        colors = cm(map_z)
-        sizes = np.ones(len(map_x))*50
-        m.scatter(map_x,map_y,marker='o',c=colors,s=sizes)
-        
     elif mode == 'pcolor':
         mx, my = m(map_x,map_y)
         m.pcolor(mx,my,map_z,cmap=cm,tri=True,shading=shade,vmin=v_min,vmax=v)
         m.colorbar(location='bottom',pad=0.4)
+
+    elif mode == 'srclocs':
+
+        indx = map_x % 3 <= 0.5
+        map_x = map_x[indx].astype(int)
+        map_y = map_y[indx].astype(int)
+
+        indy = map_y % 3 <= 0.5
+
+        mx,my = m(map_x[indy],map_y[indy])
+        m.scatter(mx,my,marker='o',c='0.5',lw=1.,s=np.ones(len(mx))*0.2)
+
+    elif mode == 'srcdots':
+        
+        
+        colors = cm(map_z)
+        indx = abs(map_z) > 0.4*np.max(map_z)
+        sizes = np.ones(len(map_x))*1
+
+        mx,my = m(map_x,map_y)
+
+
+        m.scatter(mx[indx],my[indx],marker='o',c=colors[indx],s=sizes[indx])
+        
+    
     
     if globe:
-       m.drawcoastlines(linewidth=0.5)
+       m.drawcoastlines(linewidth=0.5)#,color='0.7')
     else:
        m.drawcoastlines(linewidth=2.0)
     
-    if not proj == 'ortho':
-        if globe:
-           m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
-           m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
-        else:
+    
+    if globe:
+    
+       m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
+       m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
+
+    else:
+        if not proj == 'ortho':
            d_lon = round(abs(lonmax-lonmin) / 5.)
            d_lat = round(abs(latmax-latmin) / 5.)
            parallels = np.arange(latmin,latmax,d_lat).astype(int)
@@ -114,12 +133,12 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
 
     #draw station locations
     for sta in stations:
-        m.plot(sta[0],sta[1],'kv',markersize=10,latlon=True)
+        m.plot(sta[0],sta[1],'r^',markersize=4,latlon=True)
     
     if outfile is None:
         plt.show()
     else:
-        plt.savefig(outfile,format='png')
+        plt.savefig(outfile,dpi=300.)
         plt.close()
     
 def plot_sourcegrid(gridpoints,**kwargs):

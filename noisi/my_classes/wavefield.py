@@ -239,7 +239,10 @@ class WaveField(object):
         if t_sample >= np.shape(self.data)[1]:
             warn('Requested sample is out of bounds, resetting to last sample.')
             t_sample = np.shape(self.data)[1]-1
-        snapshot = self.data[0::resolution,t_sample] #0:len(self.data[:,0]):resolution
+        if resolution == 1:
+            snapshot = self.data[:,t_sample]
+        else:
+            snapshot = self.data[0::resolution,t_sample] #0:len(self.data[:,0]):resolution
         print('Got snapshot')
         
         return snapshot

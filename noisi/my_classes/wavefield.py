@@ -155,7 +155,7 @@ class WaveField(object):
             newfile = self.copy_setup(newfile=outfile)
         else:
             # Call self.file newfile
-            newfile = self.file
+            newfile = self#.file
         
         with click.progressbar(range(self.stats['ntraces']),label='Filtering..' ) as ind:
             for i in ind:

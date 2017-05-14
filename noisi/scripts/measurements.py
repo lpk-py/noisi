@@ -135,6 +135,34 @@ def log_en_ratio(correlation,g_speed,window_params):
         msr = np.nan
     return msr
 
+# This is a bit problematic cause here the misfit already needs
+# to be returned (for practical reasons) -- ToDo think about 
+# how to organize this better
+def inst_mf(corr_obs,corr_syn,g_speed,window_params):
+    window = get_window(corr_obs.stats,g_speed,window_params)
+    win = window[0]
+
+    if window[2]:
+        
+
+        sig1 = corr_obs.data * (win + win[::-1])
+        sig2 = corr_syn.data * (win + win[::-1])
+    # phase misfit .. try instantaneous phase
+    # hilbert gets the analytic signal (only the name is confusing)
+        a1 = hilbert(sig1)
+        a2 = hilbert(sig2)
+    
+        cc = a1*np.conjugate(a2)
+
+        boxc = np.clip((win + win[::-1]),0,1)
+        dphase = 0.5*np.trapz(np.angle(cc * boxc)**2)
+
+        if window_params['plot']:
+            plot_window(corr_obs,win,dphase)
+    else:
+        dphase = np.nan
+
+    return dphase
 
 def get_measure_func(mtype):
     
@@ -146,6 +174,8 @@ def get_measure_func(mtype):
         func = envelope
     elif mtype == 'windowed_waveform_diff':
         func = windowed_waveform
+    elif mtype == 'inst_phase':
+        func = inst_mf
     else:
         msg = 'Measurement functional %s not currently implemented.' %mtype
         raise ValueError(msg)

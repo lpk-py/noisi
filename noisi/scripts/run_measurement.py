@@ -73,6 +73,10 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
     _options_ac = copy.deepcopy(options)
     _options_ac['window_params']['causal_side'] = not(options['window_params']['causal_side'])
     
+    # ToDo
+    if mtype == 'inst_phase':
+         _opt_inst = copy.deepcopy(options)
+
     
     if files == []:
         msg = 'No input found!'
@@ -83,6 +87,12 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
         
         for f in bar:
             
+
+
+            #======================================================
+            # Reading 
+            #======================================================
+
             try: 
                 tr_o = read(f)[0]
             except:
@@ -102,30 +112,64 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
                 i+=1
                 continue
 
+            #======================================================
+            # Filtering
+            #======================================================
+            
             if bandpass is not None:
+                tr_o.taper(0.05)
                 tr_o.filter('bandpass',freqmin=bandpass[0],
                     freqmax=bandpass[1],corners=bandpass[2],
                     zerophase=True)
+                tr_s.taper(0.05)
                 tr_s.filter('bandpass',freqmin=bandpass[0],
                     freqmax=bandpass[1],corners=bandpass[2],
                     zerophase=True)
-              
+            
+            #======================================================
+            # Assigning stats to synthetics, cutting them to right length
+            #======================================================
+            
             tr_s.stats.sac = tr_o.stats.sac.copy() #ToDo: Give the stats to this thing before!
             tr_s.data = my_centered(tr_s.data,tr_o.stats.npts)    
             # Get all the necessary information
             info = get_station_info(tr_o.stats)
            
+            #======================================================
+            # Weight observed stack by nstack 
+            #======================================================
+            
+            tr_o.data /= tr_o.stats.sac.user0
+
+
+
+            #======================================================
+            # Measurement
+            #======================================================
+            
             # Take the measurement
             func = rm.get_measure_func(mtype)
-            try:
-                
-                msr_o = func(tr_o,**options)
-                msr_s = func(tr_s,**options)
 
-            except:
-                print("** Could not take measurement")
-                print(f)
-                continue
+            # ToDo Change this!!!
+            if mtype == 'inst_phase':
+                _opt_inst['corr_syn'] = tr_s
+                try:
+                    msr = func(tr_o,**_opt_inst)
+                except:
+                    print("** Could not take measurement")
+                    print(f)
+                    continue
+
+            else:
+                try:
+                    
+                    msr_o = func(tr_o,**options)
+                    msr_s = func(tr_s,**options)
+
+                except:
+                    print("** Could not take measurement")
+                    print(f)
+                    continue
             
             # timeseries-like measurements:
             if mtype in ['envelope','windowed_envelope','waveform',\
@@ -154,6 +198,13 @@ def measurement(source_config,mtype,step,ignore_network,bandpass,step_test,**opt
                     info.extend([msr_s,np.nan,msr,np.nan,
                     l2_so,snr,snr_a,tr_o.stats.sac.user0])
 
+                elif mtype == 'inst_phase':
+                    snr = snratio(tr_o,**options)
+                    snr_a = snratio(tr_o,**_options_ac)
+                    info.extend([np.nan,np.nan,np.nan,np.nan,
+                    msr,snr,snr_a,tr_o.stats.sac.user0])
+
+
             
             
             measurements.loc[i] = info
@@ -177,7 +228,7 @@ def run_measurement(source_configfile,measr_configfile,
     
 
     # TODo all available misfits --  what parameters do they need (if any.)
-    if measr_config['mtype'] in ['ln_energy_ratio','energy_diff']:
+    if measr_config['mtype'] in ['ln_energy_ratio','energy_diff','inst_phase']:
         
 
         g_speed                         =    measr_config['g_speed']

@@ -112,15 +112,15 @@ def plot_grid(map_x,map_y,map_z,stations=[],v=None,globe=False,
     
     
     if globe:
-       m.drawcoastlines(linewidth=0.5)#,color='0.7')
+       m.drawcoastlines(linewidth=0.5,color='0.7')
     else:
        m.drawcoastlines(linewidth=2.0)
     
     
     if globe:
-    
-       m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0]) # draw parallels
-       m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1]) # draw meridians
+       #pass
+       m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0],color='0.7') # draw parallels
+       m.drawmeridians(np.arange(-180,210,60.),labels=[0,0,0,1],color='0.7') # draw meridians
 
     else:
         if not proj == 'ortho':

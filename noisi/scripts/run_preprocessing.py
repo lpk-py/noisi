@@ -67,7 +67,7 @@ def run_preprocessing(source_config):
 
             # The file has been written previously by wavefield.truncate
             if os.path.exists(newfile):
-                with WaveField(newfile) as wf:
+                with WaveField(newfile,w='a') as wf:
                     wf.filter_all(
                         source_config['preprocess_filter_kind'],
                         overwrite=True,
